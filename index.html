@@ -1,0 +1,1141 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Omicron Pokédeck</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Collezione e inventario di carte Pokémon con prezzi Cardmarket, scanner da foto, wishlist e andamento di mercato.">
+<meta name="theme-color" content="#b3162c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pokédeck">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Silkscreen:wght@400;700&family=VT323&display=swap">
+<style>
+/* Layout: palmare anni '90. Guscio rosso in alto e in basso, schermo LCD verde in una cornice scura al centro, tasti fisici come navigazione. Finestre a pixel sullo schermo, numeri in cifre LCD. */
+:root{
+  --desk:#2a1d21;
+  --shell:#b3162c; --shell-dk:#7a0d1d; --shell-hi:#d93048; --shell-ink:#fff4f5; --shell-ink-2:#ffc9d1;
+  --bezel:#23252c; --bezel-hi:#3a3d48; --bezel-ink:#9096a6;
+  --lcd:#cdd9a5; --lcd-hi:#e1eac2; --lcd-dk:#b3c288; --scan:rgba(29,42,18,.05);
+  --ink:#1d2a12; --ink-2:#4b5e33; --ink-3:#8a9c69;
+  --key:#272a31; --key-ink:#eef0e2; --key-shadow:#0d0e11; --key-off:#454852;
+  --led:#5cf08a; --amber:#f2a516; --amber-ink:#2a1a00;
+  --up:#17612a; --down:#a1231a;
+  --overlay:rgba(18,10,12,.66);
+  --f-pixel:"Silkscreen",ui-monospace,Menlo,monospace;
+  --f-dot:"DotGothic16","Hiragino Sans",system-ui,-apple-system,sans-serif;
+  --f-num:"VT323",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--desk);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--desk);color:var(--ink);font:15px/1.5 var(--f-dot);min-height:100vh;min-height:100dvh}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--shell)}
+body.lock{overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+img{max-width:100%}
+h1,h2,h3{margin:0;font-weight:400;text-wrap:balance}
+p{margin:0}
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[hidden]{display:none!important}
+
+/* ---------- guscio ---------- */
+.device{max-width:820px;margin:0 auto;min-height:100vh;min-height:100dvh;background:var(--shell);display:flex;flex-direction:column}
+@media (min-width:860px){.device{margin:22px auto;min-height:calc(100dvh - 44px);border-radius:16px 16px 36px 36px;box-shadow:inset 0 0 0 3px var(--shell-dk),0 28px 60px rgba(0,0,0,.5);overflow:clip}}
+.shell-top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--shell);border-bottom:3px solid var(--shell-dk);box-shadow:inset 0 2px 0 var(--shell-hi);padding-block:10px 12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:12px}
+.led{width:14px;height:14px;border-radius:50%;background:var(--led);box-shadow:0 0 0 2px var(--shell-dk),0 0 10px var(--led);flex:none;animation:blink 4s steps(1) infinite}
+.led.busy{background:var(--amber);box-shadow:0 0 0 2px var(--shell-dk),0 0 10px var(--amber);animation-duration:.6s}
+.led.off{background:var(--key-off);box-shadow:0 0 0 2px var(--shell-dk);animation:none}
+@keyframes blink{0%,90%{opacity:1}91%,100%{opacity:.35}}
+.brand{flex:1;min-width:0;line-height:1}
+.brand small{display:block;font:400 10px/1 var(--f-pixel);letter-spacing:.22em;color:var(--shell-ink-2);margin-bottom:4px}
+.brand b{display:block;font:700 21px/1 var(--f-pixel);color:var(--shell-ink);letter-spacing:.03em;text-shadow:2px 2px 0 var(--shell-dk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.netchip{font:400 10px/1 var(--f-pixel);letter-spacing:.06em;background:var(--lcd);color:var(--ink);padding:5px 6px;border:2px solid var(--bezel);border-radius:3px;white-space:nowrap}
+.grille{display:grid;grid-template-columns:repeat(4,4px);gap:4px;flex:none}
+.grille i{height:24px;border-radius:2px;background:var(--shell-dk);box-shadow:inset 0 2px 0 rgba(0,0,0,.25)}
+
+.screenwrap{flex:1;padding-block:12px 14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column}
+.bezel{flex:1;background:var(--bezel);border-radius:10px 10px 10px 34px;padding:6px 7px 9px;box-shadow:inset 0 0 0 2px #000,inset 0 3px 0 var(--bezel-hi);display:flex;flex-direction:column;min-width:0}
+.bezel-label{font:400 9px/1 var(--f-pixel);letter-spacing:.2em;color:var(--bezel-ink);padding:5px 6px 7px;display:flex;justify-content:space-between;gap:8px;text-transform:uppercase}
+.lcd{flex:1;min-width:0;background-color:var(--lcd);background-image:linear-gradient(var(--scan) 1px,transparent 1px);background-size:100% 3px;border-radius:4px 4px 4px 28px;padding:12px 10px 22px;box-shadow:inset 0 0 0 2px var(--lcd-dk),inset 0 8px 16px rgba(0,0,0,.16)}
+.panel{display:flex;flex-direction:column;gap:14px}
+
+.keys{position:sticky;bottom:0;z-index:9;background:var(--shell);border-top:3px solid var(--shell-dk);box-shadow:inset 0 2px 0 var(--shell-hi);padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px));display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.key{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 2px 7px;background:var(--key);color:var(--key-ink);border-radius:9px;box-shadow:0 3px 0 var(--key-shadow),inset 0 1px 0 rgba(255,255,255,.12);font:400 9px/1 var(--f-pixel);letter-spacing:.04em;text-align:center}
+.key svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:square;stroke-linejoin:miter;shape-rendering:crispEdges}
+.key::before{content:"";position:absolute;top:5px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--key-off)}
+.key.on::before{background:var(--led);box-shadow:0 0 6px var(--led)}
+.key.on,.key:active{transform:translateY(2px);box-shadow:0 1px 0 var(--key-shadow),inset 0 2px 5px rgba(0,0,0,.55)}
+.key:focus-visible{outline:2px dashed var(--shell-ink);outline-offset:2px}
+
+/* ---------- elementi dello schermo ---------- */
+.win{border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink-3);min-width:0}
+.win-t{background:var(--ink);color:var(--lcd);font:400 11px/1 var(--f-pixel);letter-spacing:.08em;text-transform:uppercase;padding:6px 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.win-t span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.win-t small{font:inherit;color:var(--lcd-dk);white-space:nowrap}
+.win-b{padding:10px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.ro-grid{display:flex;flex-wrap:wrap;gap:10px}
+.ro{flex:1 1 136px;border:2px solid var(--ink-2);padding:8px 10px 9px;background:var(--lcd-hi);min-width:0}
+.ro-l{display:block;font:400 9px/1.2 var(--f-pixel);letter-spacing:.08em;color:var(--ink-2);text-transform:uppercase}
+.ro-v{display:block;font:400 clamp(22px,6vw,32px)/1 var(--f-num);color:var(--ink);margin-top:5px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.ro-s{display:block;font-size:12px;color:var(--ink-2);margin-top:3px}
+.up{color:var(--up)}.down{color:var(--down)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row>*{min-width:0}
+.grow{flex:1 1 160px}
+.note{font-size:13px;color:var(--ink-2)}
+.lbl{display:block;font:400 9px/1.2 var(--f-pixel);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin-bottom:4px}
+input,select,textarea{font:15px/1.3 var(--f-dot);color:var(--ink);background:var(--lcd-hi);border:2px solid var(--ink-2);border-radius:2px;padding:8px 9px;width:100%;min-width:0}
+select{appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink) 50%),linear-gradient(135deg,var(--ink) 50%,transparent 50%);background-position:calc(100% - 15px) 55%,calc(100% - 10px) 55%;background-size:5px 5px;background-repeat:no-repeat;padding-right:26px}
+input:focus,select:focus,textarea:focus,button:focus-visible,.btn:focus-visible{outline:2px dashed var(--ink);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:400 11px/1 var(--f-pixel);letter-spacing:.06em;text-transform:uppercase;background:var(--ink);color:var(--lcd);padding:11px 12px;border:2px solid var(--ink);border-radius:2px;box-shadow:3px 3px 0 var(--ink-3);white-space:nowrap;cursor:pointer}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink-3)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.amber{background:var(--amber);color:var(--amber-ink)}
+.btn.danger{background:transparent;color:var(--down);border-color:var(--down)}
+.btn.sm{padding:8px 9px;font-size:10px}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.seg{display:flex;border:2px solid var(--ink);min-width:0}
+.seg button{flex:1;padding:8px 4px;font:400 10px/1 var(--f-pixel);letter-spacing:.05em;text-transform:uppercase;text-align:center;color:var(--ink);min-width:0}
+.seg button+button{border-left:2px solid var(--ink)}
+.seg button.on{background:var(--ink);color:var(--lcd)}
+.chip{display:inline-block;font:400 9px/1 var(--f-pixel);letter-spacing:.05em;text-transform:uppercase;border:1.5px solid var(--ink-2);color:var(--ink-2);padding:3px 5px;white-space:nowrap}
+.chip.up{border-color:var(--up);color:var(--up)}
+.chip.down{border-color:var(--down);color:var(--down)}
+.chip.amber{background:var(--amber);color:var(--amber-ink);border-color:var(--ink)}
+.chip.inv{background:var(--ink);color:var(--lcd);border-color:var(--ink)}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.empty{text-align:center;padding:18px 8px;color:var(--ink-2);font-size:14px}
+.empty b{display:block;font:400 13px/1.3 var(--f-pixel);color:var(--ink);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.msg{border:2px solid var(--ink);padding:8px 10px;font-size:14px;background:var(--lcd-hi)}
+.msg.bad{border-color:var(--down);color:var(--down)}
+.msg a{color:inherit;font-weight:700}
+.spin{display:inline-block;width:10px;height:10px;background:var(--ink);vertical-align:-1px;animation:spin 1s steps(4) infinite;margin-right:4px}
+@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+
+/* griglia carte */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px}
+.grid.sm{grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.tile{display:flex;flex-direction:column;border:2px solid var(--ink);background:var(--lcd-hi);min-width:0;position:relative}
+.tile .art{display:block;background:var(--bezel) repeating-linear-gradient(45deg,var(--bezel) 0 6px,var(--bezel-hi) 6px 8px);aspect-ratio:245/337;max-width:100%;overflow:hidden;border-bottom:2px solid var(--ink)}
+.tile .art img{display:block;width:100%;height:100%;object-fit:cover}
+.tile .tl{padding:5px 6px 7px;font-size:12px;line-height:1.25;min-width:0}
+.tile .tl b{display:block;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .tl small{display:block;color:var(--ink-2);font:400 15px/1 var(--f-num)}
+.tile .tl em{display:block;font:400 17px/1 var(--f-num);font-style:normal;margin-top:2px}
+.tile.own::after{content:"✓";position:absolute;top:4px;right:4px;width:20px;height:20px;display:grid;place-items:center;background:var(--amber);color:var(--amber-ink);border:2px solid var(--ink);font:700 12px/1 var(--f-pixel)}
+.tile.miss .art img{opacity:.45;filter:grayscale(1)}
+img.broken{visibility:hidden}
+
+/* liste */
+.list{display:flex;flex-direction:column}
+.li{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 2px;border-bottom:2px dotted var(--ink-3);width:100%;text-align:left}
+.li:last-child{border-bottom:0}
+.li-v .sp{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.li img{width:42px;height:58px;object-fit:cover;background:var(--bezel);border:2px solid var(--ink)}
+.li-t b{display:block;font-weight:400;font-size:14px;line-height:1.25}
+.li-t small{display:block;font-size:12px;color:var(--ink-2);line-height:1.3}
+.li-v{text-align:right;white-space:nowrap}
+.li-v b{display:block;font:400 22px/1 var(--f-num)}
+.li-v small{display:block;font:400 16px/1.1 var(--f-num)}
+.li-v svg{display:block}
+
+/* set */
+.serie-h{font:400 11px/1 var(--f-pixel);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);border-bottom:2px solid var(--ink-2);padding:12px 0 5px}
+.setgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
+.settile{display:flex;flex-direction:column;gap:6px;border:2px solid var(--ink);background:var(--lcd-hi);padding:8px;min-width:0;text-align:left}
+.settile .lg{height:38px;display:flex;align-items:center}
+.settile .lg img{max-height:38px;max-width:100%;object-fit:contain}
+.settile b{font-weight:400;font-size:13px;line-height:1.2}
+.settile small{font:400 15px/1 var(--f-num);color:var(--ink-2)}
+.pbar{height:8px;border:1.5px solid var(--ink);background:var(--lcd)}
+.pbar i{display:block;height:100%;background:repeating-linear-gradient(90deg,var(--ink) 0 5px,transparent 5px 7px)}
+
+/* grafici */
+.chart{display:block;width:100%;height:auto;overflow:visible}
+.chart .gl{stroke:var(--ink-3);stroke-dasharray:2 3;shape-rendering:crispEdges}
+.chart .base{stroke:var(--ink);shape-rendering:crispEdges}
+.chart .tl{fill:var(--ink-2);font:15px var(--f-num)}
+.chart .ln{fill:none;stroke:var(--ink);stroke-width:2.5;stroke-linejoin:miter}
+.chart .ln.alt{stroke:var(--ink-2);stroke-dasharray:6 4}
+.chart .area{fill:var(--ink);opacity:.1}
+.chart .pt{fill:var(--ink)}
+.chart .pt.alt{fill:var(--ink-2)}
+.chart .pt.last{fill:var(--amber);stroke:var(--ink);stroke-width:2}
+.chart .ca{fill:var(--ink)}
+.chart .cb{fill:var(--amber);stroke:var(--ink);stroke-width:1.5}
+.chart .cb.neg{fill:var(--down);stroke:var(--ink)}
+.spark .ln{stroke-width:2}
+.spark.up .ln{stroke:var(--up)} .spark.up .pt.last{fill:var(--up);stroke:none}
+.spark.down .ln{stroke:var(--down)} .spark.down .pt.last{fill:var(--down);stroke:none}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2)}
+.legend i{display:inline-block;width:12px;height:12px;border:1.5px solid var(--ink);vertical-align:-2px;margin-right:5px}
+.legend .la{background:var(--ink)} .legend .lb{background:var(--amber)} .legend .lc{background:transparent;border-style:dashed}
+.bars{display:flex;flex-direction:column;gap:9px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;align-items:baseline}
+.bar-l{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-v{font:400 18px/1 var(--f-num);white-space:nowrap}
+.bar-v small{font:inherit;color:var(--ink-2)}
+.bar-t{grid-column:1/-1;height:12px;border:1.5px solid var(--ink);background:var(--lcd-hi)}
+.bar-t i{display:block;height:100%;background:repeating-linear-gradient(90deg,var(--ink) 0 6px,transparent 6px 8px)}
+
+/* scanner */
+.job{display:grid;grid-template-columns:86px minmax(0,1fr);gap:10px;border:2px solid var(--ink);padding:8px;background:var(--lcd-hi)}
+.job-img{width:86px;max-height:120px;object-fit:contain;background:var(--bezel);border:2px solid var(--ink)}
+.job-b{display:flex;flex-direction:column;gap:8px;min-width:0}
+.job-s{font-size:13px}
+.job .grid{grid-column:1/-1}
+@media (max-width:380px){.job{grid-template-columns:64px minmax(0,1fr)}.job-img{width:64px}}
+
+/* scheda */
+.modal{position:fixed;inset:0;z-index:20;background:var(--overlay);display:flex;align-items:flex-end;justify-content:center}
+@media (min-width:720px){.modal{align-items:center;padding:24px}}
+.sheet{width:100%;max-width:680px;max-height:94%;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--bezel);border-radius:14px 14px 0 0;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
+@media (min-width:720px){.sheet{border-radius:14px}}
+.sheet-in{background-color:var(--lcd);background-image:linear-gradient(var(--scan) 1px,transparent 1px);background-size:100% 3px;border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:14px}
+.sheet-hd{display:flex;gap:10px;align-items:flex-start}
+.sheet-hd h2{font:400 16px/1.25 var(--f-pixel);text-transform:uppercase;letter-spacing:.03em}
+.sheet-hd p{font-size:13px;color:var(--ink-2);margin-top:4px}
+.x{flex:none;width:34px;height:34px;border:2px solid var(--ink);font:700 16px/1 var(--f-pixel);display:grid;place-items:center;background:var(--lcd-hi)}
+.cardbig{display:grid;grid-template-columns:minmax(0,160px) minmax(0,1fr);gap:12px;align-items:start}
+@media (max-width:420px){.cardbig{grid-template-columns:minmax(0,118px) minmax(0,1fr)}}
+.cardbig .art{border:2px solid var(--ink);background:var(--bezel);aspect-ratio:245/337;max-width:100%}
+.cardbig .art img{display:block;width:100%;height:100%;object-fit:cover}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;font-size:13px;align-items:baseline}
+.kv span{color:var(--ink-2)}
+.kv b{font:400 19px/1 var(--f-num);font-weight:400;text-align:right;white-space:nowrap}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.form .full{grid-column:1/-1}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:6px;border-bottom:2px dotted var(--ink-3)}
+th{font:400 9px/1.2 var(--f-pixel);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+a{color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;background:var(--ink);color:var(--lcd);border:2px solid var(--lcd);box-shadow:3px 3px 0 var(--ink-3);font:400 11px/1.3 var(--f-pixel);letter-spacing:.04em;padding:9px 12px;max-width:min(90%,420px);text-align:center}
+@media (prefers-reduced-motion:reduce){.led,.spin{animation:none}}
+</style>
+</head>
+<body>
+<div class="device">
+  <header class="shell-top">
+    <span class="led" id="led" aria-hidden="true"></span>
+    <div class="brand"><small>EMPORIO OMICRON</small><b>POKÉDECK</b></div>
+    <span class="netchip" id="netchip">ONLINE</span>
+    <span class="grille" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+  </header>
+
+  <div class="screenwrap">
+    <div class="bezel">
+      <div class="bezel-label"><span id="screen-name">Panoramica</span><span id="clock"></span></div>
+      <main class="lcd" id="lcd">
+        <div id="netmsg" class="msg bad" hidden style="margin-bottom:12px"></div>
+
+        <!-- PANORAMICA -->
+        <section class="panel" id="p-home">
+          <div class="ro-grid" id="home-stats"></div>
+          <div class="win" id="home-start" hidden>
+            <div class="win-t"><span>Inizia</span></div>
+            <div class="win-b">
+              <p>Aggiungi la prima carta: fotografala o scegli una foto dalla galleria, cercala per nome o sfoglia i set.</p>
+              <div class="row"><button class="btn amber" data-go="scan">Scansiona</button><button class="btn ghost" data-go="sets">Sfoglia i set</button></div>
+            </div>
+          </div>
+          <div class="win" id="home-install" hidden>
+            <div class="win-t"><span>Installa su iPhone</span><button class="chip inv" id="install-x" style="border-color:var(--lcd);color:var(--lcd)">CHIUDI</button></div>
+            <div class="win-b"><p>Apri questa pagina in Safari, tocca Condividi e poi «Aggiungi alla schermata Home». Così l'app si apre a tutto schermo e i dati restano al sicuro sul telefono.</p></div>
+          </div>
+          <div class="win">
+            <div class="win-t"><span>Valore ultimi 30 giorni</span><small id="home-chart-sub"></small></div>
+            <div class="win-b"><div id="home-chart"></div><div class="row"><button class="btn sm" id="btn-refresh">Aggiorna prezzi</button><span class="note" id="refresh-note"></span></div></div>
+          </div>
+          <div class="win">
+            <div class="win-t"><span>Avvisi wishlist</span></div>
+            <div class="win-b"><div class="list" id="home-alerts"></div></div>
+          </div>
+          <div class="win">
+            <div class="win-t"><span>Ultime aggiunte</span></div>
+            <div class="win-b"><div class="list" id="home-recent"></div></div>
+          </div>
+        </section>
+
+        <!-- SCANNER E RICERCA -->
+        <section class="panel" id="p-scan" hidden>
+          <div class="win">
+            <div class="win-t"><span>Scanner</span><small>foto → carta</small></div>
+            <div class="win-b">
+              <p class="note">Inquadra la carta dritta e intera. Viene letto il numero in basso (es. 136/189) e il nome, poi tocchi la carta giusta. Puoi scegliere più foto insieme dalla galleria.</p>
+              <div class="row">
+                <label class="btn amber" for="in-cam">Scatta foto</label>
+                <label class="btn" for="in-gal">Dalla galleria</label>
+              </div>
+              <input class="vh" type="file" id="in-cam" accept="image/*" capture="environment">
+              <input class="vh" type="file" id="in-gal" accept="image/*" multiple>
+              <div id="scan-queue" class="panel"></div>
+            </div>
+          </div>
+          <div class="win">
+            <div class="win-t"><span>Cerca</span></div>
+            <div class="win-b">
+              <form id="search-form" class="row">
+                <input id="q" class="grow" placeholder="Nome, 136/189 o sv06-125" autocomplete="off" enterkeyhint="search" aria-label="Cerca una carta">
+                <button class="btn" type="submit">Cerca</button>
+              </form>
+              <p class="note" id="search-note"></p>
+              <div class="grid" id="search-results"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SET -->
+        <section class="panel" id="p-sets" hidden>
+          <div class="row">
+            <input id="set-filter" class="grow" placeholder="Filtra set: nome o codice" autocomplete="off" aria-label="Filtra set">
+            <select id="serie-filter" style="flex:0 1 46%" aria-label="Serie"><option value="">Tutte le serie</option></select>
+          </div>
+          <p class="note" id="sets-note"></p>
+          <div id="setlist"></div>
+        </section>
+
+        <section class="panel" id="p-set" hidden>
+          <div class="row"><button class="btn ghost sm" data-go="sets">← Set</button><span class="grow"></span><span class="chip inv" id="set-progress"></span></div>
+          <div class="win"><div class="win-t"><span id="set-title">Set</span><small id="set-code"></small></div><div class="win-b" id="set-head"></div></div>
+          <div class="row">
+            <input id="set-card-filter" class="grow" placeholder="Nome o numero" autocomplete="off" aria-label="Filtra carte">
+            <select id="set-only" style="flex:0 1 40%" aria-label="Mostra"><option value="all">Tutte</option><option value="mine">Possedute</option><option value="missing">Mancanti</option></select>
+          </div>
+          <div class="grid" id="set-cards"></div>
+        </section>
+
+        <!-- CARTE -->
+        <section class="panel" id="p-cards" hidden>
+          <div class="seg" id="coll-seg"><button data-c="personale" class="on">Collezione</button><button data-c="negozio">Negozio</button><button data-c="wish">Wishlist</button></div>
+          <div class="ro-grid" id="coll-stats"></div>
+          <div class="row" id="coll-tools">
+            <input id="coll-filter" class="grow" placeholder="Filtra per nome, set, numero" autocomplete="off" aria-label="Filtra carte">
+            <select id="coll-sort" style="flex:0 1 44%" aria-label="Ordina"><option value="added">Più recenti</option><option value="value">Valore ↓</option><option value="trend">Tendenza ↓</option><option value="gain">Guadagno ↓</option><option value="name">Nome</option><option value="set">Set e numero</option></select>
+          </div>
+          <div class="row" id="shop-tools" hidden>
+            <select id="shop-status" style="flex:1 1 50%" aria-label="Stato"><option value="disponibile">Disponibili</option><option value="venduto">Vendute</option><option value="all">Tutte</option></select>
+            <button class="btn ghost sm" id="btn-csv">Esporta CSV</button>
+          </div>
+          <div class="win"><div class="win-t"><span id="coll-title">Collezione</span><small id="coll-count"></small></div><div class="win-b"><div class="list" id="coll-list"></div></div></div>
+        </section>
+
+        <!-- MERCATO -->
+        <section class="panel" id="p-market" hidden>
+          <div class="win">
+            <div class="win-t"><span>Valore nel tempo</span><small id="mk-value-sub"></small></div>
+            <div class="win-b">
+              <div class="seg" id="mk-range"><button data-r="7">7 G</button><button data-r="30" class="on">30 G</button><button data-r="90">90 G</button><button data-r="all">Tutto</button></div>
+              <div id="mk-value"></div>
+              <div class="legend"><span><i class="la"></i>Totale</span><span><i class="lc"></i>Negozio</span></div>
+            </div>
+          </div>
+          <div class="win">
+            <div class="win-t"><span>Tendenza Cardmarket delle tue carte</span></div>
+            <div class="win-b" id="mk-trend"></div>
+          </div>
+          <div class="win">
+            <div class="win-t"><span>Rialzi e ribassi</span><small>7 vs 30 gg</small></div>
+            <div class="win-b">
+              <div class="seg" id="mk-mdir"><button data-d="up" class="on">Rialzi</button><button data-d="down">Ribassi</button></div>
+              <div class="list" id="mk-movers"></div>
+            </div>
+          </div>
+          <div class="win">
+            <div class="win-t"><span>Composizione del valore</span></div>
+            <div class="win-b">
+              <div class="seg" id="mk-dim"><button data-k="set" class="on">Set</button><button data-k="rarity">Rarità</button><button data-k="lang">Lingua</button><button data-k="cond">Cond.</button></div>
+              <div class="bars" id="mk-comp"></div>
+            </div>
+          </div>
+          <div class="win">
+            <div class="win-t"><span>Vendite negozio</span><small>12 mesi</small></div>
+            <div class="win-b" id="mk-sales"></div>
+          </div>
+          <div class="win">
+            <div class="win-t"><span>Mercato: carte più care</span><small id="mk-top-sub"></small></div>
+            <div class="win-b">
+              <p class="note">Carte Pokémon con il prezzo di tendenza Cardmarket più alto, con la variazione recente. Si aggiorna ogni 12 ore.</p>
+              <div class="row"><button class="btn sm" id="btn-mk-top">Carica il mercato</button></div>
+              <div id="mk-top"></div>
+            </div>
+          </div>
+          <div class="win">
+            <div class="win-t"><span>Analizza un set</span></div>
+            <div class="win-b">
+              <div class="row"><select id="mk-set" class="grow" aria-label="Set da analizzare"></select><button class="btn sm" id="btn-mk-set">Analizza</button></div>
+              <div id="mk-setres"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ALTRO -->
+        <section class="panel" id="p-more" hidden>
+          <div class="win">
+            <div class="win-t"><span>Backup</span></div>
+            <div class="win-b">
+              <p class="note">I dati restano su questo dispositivo. Esporta un backup ogni tanto e conservalo su File o iCloud; l'importazione aggiunge e aggiorna, non cancella nulla.</p>
+              <div class="row">
+                <button class="btn" id="btn-json">Esporta backup</button>
+                <label class="btn ghost" for="in-import">Importa backup</label>
+                <input class="vh" type="file" id="in-import" accept="application/json,.json">
+              </div>
+              <p class="note" id="backup-note"></p>
+            </div>
+          </div>
+          <div class="win">
+            <div class="win-t"><span>Prezzi e catalogo</span></div>
+            <div class="win-b">
+              <div class="form">
+                <div><label class="lbl" for="pref-price">Prezzo di riferimento</label>
+                  <select id="pref-price"><option value="trend">Cardmarket tendenza</option><option value="avg">Cardmarket media</option><option value="low">Cardmarket minimo</option><option value="avg7">Media 7 giorni</option><option value="avg30">Media 30 giorni</option></select></div>
+                <div><label class="lbl" for="pref-lang">Lingua del catalogo</label>
+                  <select id="pref-lang"><option value="it">Italiano</option><option value="en">Inglese</option><option value="fr">Francese</option><option value="de">Tedesco</option><option value="es">Spagnolo</option><option value="ja">Giapponese</option></select></div>
+              </div>
+              <p class="note">Dati e immagini da TCGdex. Prezzi Cardmarket in euro (aggiornati una volta al giorno) e TCGplayer in dollari. Cardmarket fornisce la media di 1, 7 e 30 giorni: da lì nascono le tendenze. Lo storico del valore parte dal primo giorno in cui apri l'app. Il prezzo vale per la carta in generale, non per lingua o condizione: per le carte importanti imposta un prezzo manuale.</p>
+              <p class="note" id="storage-note"></p>
+            </div>
+          </div>
+          <div class="win">
+            <div class="win-t"><span>Sigle condizione</span></div>
+            <div class="win-b"><div class="tbl"><table>
+              <tr><th>Sigla</th><th>Significato</th></tr>
+              <tr><td>M</td><td>Mint, perfetta</td></tr><tr><td>NM</td><td>Near Mint, come nuova</td></tr><tr><td>EX</td><td>Excellent, lievi segni</td></tr><tr><td>GD</td><td>Good, segni visibili</td></tr><tr><td>LP</td><td>Light Played</td></tr><tr><td>PL</td><td>Played</td></tr><tr><td>PO</td><td>Poor</td></tr>
+            </table></div></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <nav class="keys" aria-label="Sezioni">
+    <button class="key on" data-t="home"><svg viewBox="0 0 16 16"><path d="M2 8 8 2.5 14 8M3.5 7v6.5h9V7M6.5 13.5v-4h3v4"/></svg>HOME</button>
+    <button class="key" data-t="scan"><svg viewBox="0 0 16 16"><path d="M2 5V2h3M11 2h3v3M14 11v3h-3M5 14H2v-3M5 8h6"/></svg>SCAN</button>
+    <button class="key" data-t="sets"><svg viewBox="0 0 16 16"><path d="M2.5 4h7v10h-7zM6.5 2h7v10"/></svg>SET</button>
+    <button class="key" data-t="cards"><svg viewBox="0 0 16 16"><path d="M3.5 1.5h9v13h-9zM6 5h4M6 8h4M6 11h2"/></svg>CARTE</button>
+    <button class="key" data-t="market"><svg viewBox="0 0 16 16"><path d="M1.5 14.5h13M2.5 11 6 7l3 3 4.5-6M10.5 4h3v3"/></svg>MERCATO</button>
+    <button class="key" data-t="more"><svg viewBox="0 0 16 16"><path d="M2.5 8h1M7.5 8h1M12.5 8h1M2.5 3.5h11M2.5 12.5h11"/></svg>ALTRO</button>
+  </nav>
+</div>
+
+<div id="modal-root"></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(()=>{'use strict';
+/* ================= costanti e utilità ================= */
+const API='https://api.tcgdex.net/v2';
+const HOME_URL='https://mircomirco666-max.github.io/omicron-pokedeck/';
+const TESS='https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf2=new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'});
+const nf0=new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+const nfU=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'});
+const ok=n=>n!=null&&isFinite(n);
+const fmtE=n=>ok(n)?nf2.format(n):'—';
+const fmtE0=n=>ok(n)?(Math.abs(n)>=1000?nf0:nf2).format(n):'—';
+const fmtU=n=>ok(n)?nfU.format(n):'—';
+const fmtP=p=>ok(p)?(p>0?'+':'')+(p*100).toFixed(1).replace('.',',')+'%':'—';
+const tick=v=>Math.abs(v)>=1000?Math.round(v).toLocaleString('it-IT')+' €':Math.abs(v)>=10?Math.round(v)+' €':v.toFixed(2).replace('.',',')+' €';
+const pad=n=>String(n).padStart(2,'0');
+const dayOf=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const today=()=>dayOf(new Date());
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const num=v=>{if(v===''||v==null)return null;let s=String(v).trim().replace(/[€\s]/g,'');if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');const n=parseFloat(s);return isFinite(n)?n:null};
+const sum=(a,f)=>a.reduce((t,x)=>t+(f(x)||0),0);
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,'');
+const MESI=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+const COND=['M','NM','EX','GD','LP','PL','PO'];
+const LANGS={it:'Italiano',en:'Inglese',ja:'Giapponese',fr:'Francese',de:'Tedesco',es:'Spagnolo',pt:'Portoghese',ko:'Coreano','zh-tw':'Cinese'};
+const VTYPE={normal:'Normale',holo:'Holo',reverse:'Reverse holo',metal:'Metal',lenticular:'Lenticolare'};
+const TABNAME={home:'Panoramica',scan:'Scanner e ricerca',sets:'Catalogo set',set:'Set',cards:'Le tue carte',market:'Mercato',more:'Altro'};
+async function pool(list,n,fn){const out=new Array(list.length);let i=0;await Promise.all(Array.from({length:Math.min(n,list.length)},async()=>{while(i<list.length){const k=i++;try{out[k]=await fn(list[k],k)}catch(e){out[k]=null}}}));return out}
+function lsGet(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+
+/* ================= archivio locale (IndexedDB, ripiego su localStorage) ================= */
+const store={
+  idb:null,
+  init(){return new Promise(res=>{try{const r=indexedDB.open('omicron-pokedeck',1);
+    r.onupgradeneeded=()=>{const d=r.result;for(const n of ['items','wishlist','history'])if(!d.objectStoreNames.contains(n))d.createObjectStore(n,{keyPath:'id'});if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv')};
+    r.onsuccess=()=>{this.idb=r.result;res(true)};r.onerror=()=>res(false);r.onblocked=()=>res(false)}catch(e){res(false)}})},
+  os(n,m){return this.idb.transaction(n,m).objectStore(n)},
+  rq(r){return new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})},
+  async all(n){if(this.idb)try{return await this.rq(this.os(n,'readonly').getAll())}catch(e){}return lsGet('pd-'+n)||[]},
+  async put(n,o){const v=JSON.parse(JSON.stringify(o));if(this.idb)try{return await this.rq(this.os(n,'readwrite').put(v))}catch(e){}const a=lsGet('pd-'+n)||[];const i=a.findIndex(x=>x.id===v.id);if(i>=0)a[i]=v;else a.push(v);lsSet('pd-'+n,a)},
+  async del(n,id){if(this.idb)try{return await this.rq(this.os(n,'readwrite').delete(id))}catch(e){}lsSet('pd-'+n,(lsGet('pd-'+n)||[]).filter(x=>x.id!==id))},
+  async get(k){if(this.idb)try{return await this.rq(this.os('kv','readonly').get(k))}catch(e){}return lsGet('pd-kv-'+k)},
+  async set(k,v){if(this.idb)try{return await this.rq(this.os('kv','readwrite').put(JSON.parse(JSON.stringify(v)),k))}catch(e){}lsSet('pd-kv-'+k,v)}
+};
+
+/* ================= stato ================= */
+const S={items:[],wish:[],hist:{},prefs:{price:'trend',lang:'it'},tab:'home',cat:null,setCache:{},cardCache:{},coll:'personale',mkRange:'30',mkDir:'up',mkDim:'set',refreshing:false,curSet:null};
+
+/* ================= rete / TCGdex ================= */
+let netFails=0;
+function netState(okNet){
+  const chip=$('#netchip'),m=$('#netmsg');
+  if(okNet){netFails=0;chip.textContent='ONLINE';m.hidden=true;$('#led').classList.remove('off');return}
+  netFails++;chip.textContent='OFFLINE';$('#led').classList.add('off');
+  const onSite=/github\.io$/.test(location.hostname);
+  m.innerHTML=onSite?'Nessuna connessione: catalogo e prezzi non si aggiornano. Le tue carte restano consultabili.'
+    :'Qui il catalogo non si può caricare. Apri l\'app completa: <a href="'+HOME_URL+'" target="_blank" rel="noopener">'+HOME_URL.replace('https://','')+'</a>';
+  m.hidden=false;
+}
+async function j(path){
+  let r;
+  try{r=await fetch(API+path)}catch(e){netState(false);const er=new Error('rete');er.net=true;throw er}
+  netState(true);
+  if(r.status===404)return null;
+  if(!r.ok)throw new Error('TCGdex risponde '+r.status);
+  return r.json();
+}
+const hasPrice=c=>!!(c&&c.pricing&&(c.pricing.cardmarket||c.pricing.tcgplayer));
+
+let catP=null;
+function catalog(){if(S.cat)return Promise.resolve(S.cat);if(!catP)catP=loadCatalog().finally(()=>{catP=null});return catP}
+async function loadCatalog(){
+  const key='cat2-'+S.prefs.lang, c=await store.get(key);
+  if(c&&c.t>Date.now()-3*864e5){S.cat=c.d;return S.cat}
+  try{
+    const series=await j('/en/series')||[];
+    const det=await pool(series,5,s=>j('/en/series/'+encodeURIComponent(s.id)));
+    const locSets={},locSer={};
+    if(S.prefs.lang!=='en'){
+      try{(await j('/'+S.prefs.lang+'/sets')||[]).forEach(s=>locSets[s.id]=s)}catch(e){}
+      try{(await j('/'+S.prefs.lang+'/series')||[]).forEach(s=>locSer[s.id]=s)}catch(e){}
+    }
+    const sets=[],ser=[];
+    det.forEach(d=>{if(!d)return;const sn=(locSer[d.id]&&locSer[d.id].name)||d.name;ser.push({id:d.id,name:sn});
+      (d.sets||[]).forEach(s=>{const l=locSets[s.id];sets.push({id:s.id,name:(l&&l.name)||s.name,logo:(l&&l.logo)||s.logo||'',official:s.cardCount?.official??null,total:s.cardCount?.total??null,serieId:d.id,serie:sn})})});
+    if(!sets.length)throw new Error('Catalogo vuoto');
+    S.cat={sets,series:ser};await store.set(key,{t:Date.now(),d:S.cat});return S.cat;
+  }catch(e){if(c){S.cat=c.d;return S.cat}throw e}
+}
+const setInfo=id=>S.cat?S.cat.sets.find(s=>s.id===id):null;
+const setIdOf=cardId=>String(cardId).slice(0,String(cardId).lastIndexOf('-'));
+
+async function getSet(id){
+  if(S.setCache[id])return S.setCache[id];
+  let d=null;
+  if(S.prefs.lang!=='en'){try{d=await j('/'+S.prefs.lang+'/sets/'+encodeURIComponent(id))}catch(e){if(e.net)throw e}}
+  if(!d||!(d.cards||[]).length)d=await j('/en/sets/'+encodeURIComponent(id));
+  if(!d)throw new Error('Set non trovato');
+  const sid=d.serie&&d.serie.id;
+  d.cards=(d.cards||[]).map(c=>Object.assign({},c,{image:c.image||(sid?'https://assets.tcgdex.net/en/'+sid+'/'+d.id+'/'+c.localId:''),set:{id:d.id,name:d.name}}));
+  S.setCache[id]=d;return d;
+}
+async function getCard(id,o={}){
+  const lang=o.lang||S.prefs.lang,ck=lang+':'+id;
+  if(S.cardCache[ck]&&!o.force)return S.cardCache[ck];
+  let a=null,en=null;
+  if(lang!=='en'){try{a=await j('/'+lang+'/cards/'+encodeURIComponent(id))}catch(e){if(e.net)throw e}}
+  if(!a||!a.image||!hasPrice(a))en=await j('/en/cards/'+encodeURIComponent(id));
+  const c=a||en;if(!c)throw new Error('Carta non trovata');
+  if(en&&c!==en){if(!hasPrice(c)){c.pricing=en.pricing;c.variants_detailed=en.variants_detailed||c.variants_detailed}if(!c.image)c.image=en.image}
+  S.cardCache[ck]=c;return c;
+}
+const imgOf=(x,q='low')=>x&&x.image?x.image+'/'+q+'.webp':'';
+
+/* ================= prezzi e varianti ================= */
+const CMK=['avg','low','trend','avg1','avg7','avg30'];
+function labelVariant(v){
+  let s=VTYPE[v.type]||v.type||'Normale';
+  const st=(v.stamp||[]).map(x=>x==='1st-edition'?'1ª ed.':x.replace(/-/g,' '));
+  if(st.length)s+=' · '+st.join(', ');
+  if(v.subtype)s+=' · '+String(v.subtype).replace(/-/g,' ');
+  if(v.foil)s+=' · foil '+String(v.foil).replace(/-/g,' ');
+  if(v.size==='jumbo')s+=' · jumbo';
+  return s;
+}
+function variantsOf(c){
+  const vd=Array.isArray(c&&c.variants_detailed)?c.variants_detailed:[];
+  if(vd.length)return vd.map((v,i)=>({key:String(v.variantId||((v.type||'v')+i)),type:v.type||'normal',first:(v.stamp||[]).includes('1st-edition'),label:labelVariant(v),pricing:v.pricing||null}));
+  const vs=(c&&c.variants)||{},out=[];
+  if(vs.normal)out.push({key:'normal',type:'normal',label:'Normale'});
+  if(vs.holo)out.push({key:'holo',type:'holo',label:'Holo'});
+  if(vs.reverse)out.push({key:'reverse',type:'reverse',label:'Reverse holo'});
+  if(vs.firstEdition)out.push({key:'firstEdition',type:'holo',first:true,label:'1ª edizione'});
+  if(!out.length)out.push({key:'normal',type:'normal',label:'Normale'});
+  return out.map(v=>Object.assign({pricing:null},v));
+}
+function priceFor(c,key){
+  const vs=variantsOf(c),v=vs.find(x=>x.key===key)||vs[0],root=(c&&c.pricing)||{};
+  const cm=(v.pricing&&v.pricing.cardmarket)||root.cardmarket||null;
+  const tp=(v.pricing&&v.pricing.tcgplayer)||root.tcgplayer||null;
+  let cmv=null;
+  if(cm){const foil=v.type==='reverse'&&cm['trend-holo']!=null;cmv={};CMK.forEach(k=>{const x=foil?cm[k+'-holo']:cm[k];cmv[k]=x==null?null:+x});cmv.updated=cm.updated||null;if(CMK.every(k=>cmv[k]==null))cmv=null}
+  let usd=null;
+  if(tp){const order=[...(v.first?['1st-edition-holofoil','1st-edition-normal']:[]),...({reverse:['reverse-holofoil','reverse'],holo:['holofoil','holo'],normal:['normal']}[v.type]||[]),'normal','holofoil','reverse-holofoil'];
+    for(const k of order){const o=tp[k];if(o&&typeof o==='object'){const x=o.marketPrice??o.midPrice??o.lowPrice;if(x!=null){usd=+x;break}}}}
+  return {key:v.key,label:v.label,type:v.type,eur:pickEur(cmv),cm:cmv,usd};
+}
+function pickEur(cm){if(!cm)return null;const p=S.prefs.price;return cm[p]??cm.trend??cm.avg??cm.low??null}
+function trendOf(cm){if(!cm)return null;const a30=cm.avg30,a7=cm.avg7,a1=cm.avg1??cm.trend;return {a30,a7,a1,p:(ok(a7)&&a30)?(a7-a30)/a30:null}}
+const unitOf=i=>i.manualPrice!=null?+i.manualPrice:(i.priceEur??null);
+const valueOf=i=>(unitOf(i)||0)*(+i.qty||1);
+const costOf=i=>(+i.buyPrice||0)*(+i.qty||1);
+const avail=()=>S.items.filter(i=>i.status!=='venduto');
+const ownedIds=()=>new Set(avail().map(i=>i.cardId));
+function collIndex(list){let a30=0,a7=0,a1=0,n=0;list.forEach(i=>{const c=i.cm;if(!c||!ok(c.avg30)||!ok(c.avg7))return;const q=+i.qty||1;a30+=c.avg30*q;a7+=c.avg7*q;a1+=(c.avg1??c.trend??c.avg7)*q;n++});return {a30,a7,a1,n,p:a30?(a7-a30)/a30:null}}
+
+/* ================= grafici (SVG, unità = pixel reali) ================= */
+function lineSVG(series,o={}){
+  const W=Math.max(260,Math.round(o.w||320)),H=o.h||200,pl=o.pl??62,pr=12,pt=14,pb=o.xl===false?10:30;
+  const vals=series.flatMap(s=>s.pts.map(p=>p.y)).filter(ok);
+  if(!vals.length)return '';
+  let lo=Math.min(...vals),hi=Math.max(...vals);
+  if(lo===hi){lo=lo*0.8;hi=hi*1.2+0.5}else{const d=(hi-lo)*0.15;lo=Math.max(0,lo-d);hi+=d}
+  const n=Math.max(...series.map(s=>s.pts.length));
+  const X=i=>pl+(W-pl-pr)*(n<=1?0.5:i/(n-1)),Y=v=>pt+(H-pt-pb)*(1-(v-lo)/(hi-lo));
+  let g='';
+  for(let k=0;k<=3;k++){const v=lo+(hi-lo)*k/3,y=Y(v).toFixed(1);g+=`<line class="gl" x1="${pl}" x2="${W-pr}" y1="${y}" y2="${y}"/><text class="tl" x="${pl-8}" y="${(+y+5).toFixed(1)}" text-anchor="end">${esc(tick(v))}</text>`}
+  if(o.xl!==false){const lab=series[0].pts.map(p=>String(p.x)),drawn=[];
+    const box=i=>{const w=lab[i].length*9,x=X(i),a=n>1&&i===0?'start':n>1&&i===n-1?'end':'middle';return {i,a,x,l:a==='start'?x:a==='end'?x-w:x-w/2,r:a==='start'?x+w:a==='end'?x:x+w/2}};
+    for(let i=0;i<n;i++){const b=box(i);const prev=drawn[drawn.length-1];if(prev&&b.l<prev.r+10){if(i===n-1)drawn.pop();else continue}drawn.push(b)}
+    drawn.forEach(b=>{g+=`<text class="tl" x="${b.x.toFixed(1)}" y="${H-8}" text-anchor="${b.a}">${esc(lab[b.i])}</text>`})}
+  series.forEach((s,si)=>{
+    const P=s.pts.map((p,i)=>ok(p.y)?[X(i),Y(p.y)]:null);let d='',pen=false;
+    P.forEach(p=>{if(!p){pen=false;return}d+=(pen?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1);pen=true});
+    if(o.area&&si===0){const f=P.filter(Boolean);if(f.length>1)g+=`<path class="area" d="M${f[0][0].toFixed(1)},${H-pb}L${f.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join('L')}L${f[f.length-1][0].toFixed(1)},${H-pb}Z"/>`}
+    g+=`<path class="ln ${s.cls||''}" d="${d}"/>`;
+    const lastI=P.map((p,i)=>p?i:-1).filter(i=>i>=0).pop();
+    P.forEach((p,i)=>{if(!p)return;const last=i===lastI&&si===0;if(n>36&&!last)return;const z=last?9:6;g+=`<rect class="pt ${s.cls||''} ${last?'last':''}" x="${(p[0]-z/2).toFixed(1)}" y="${(p[1]-z/2).toFixed(1)}" width="${z}" height="${z}"/>`});
+  });
+  return `<svg class="chart" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.label||'Grafico')}">${g}</svg>`;
+}
+function sparkSVG(cm,w=64,h=28){
+  const t=trendOf(cm);if(!t)return '';
+  const v=[t.a30,t.a7,t.a1];if(v.filter(ok).length<2)return '';
+  const f=v.filter(ok);let lo=Math.min(...f),hi=Math.max(...f);if(lo===hi){lo-=1;hi+=1}
+  const X=i=>4+(w-8)*i/2,Y=x=>4+(h-8)*(1-(x-lo)/(hi-lo));
+  let d='',pen=false,last=null;v.forEach((x,i)=>{if(!ok(x)){pen=false;return}d+=(pen?'L':'M')+X(i).toFixed(1)+','+Y(x).toFixed(1);pen=true;last=[X(i),Y(x)]});
+  const cls=ok(t.p)?(t.p>0.005?'up':t.p<-0.005?'down':''):'';
+  return `<svg class="chart spark ${cls}" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><path class="ln" d="${d}"/>${last?`<rect class="pt last" x="${(last[0]-3).toFixed(1)}" y="${(last[1]-3).toFixed(1)}" width="6" height="6"/>`:''}</svg>`;
+}
+function columnsSVG(rows,w){
+  const W=Math.max(260,Math.round(w)),H=190,pl=62,pr=8,pt=12,pb=28;
+  const vals=rows.flatMap(r=>[r.a,r.b]);let hi0=Math.max(0,...vals),lo=Math.min(0,...vals);if(hi0===lo)hi0=lo+10;const hi=hi0*1.08;
+  const Y=v=>pt+(H-pt-pb)*(1-(v-lo)/(hi-lo)),bw=(W-pl-pr)/rows.length;let g='';
+  const tk=[0,hi0/2,hi0];if(lo<0)tk.unshift(lo);
+  tk.forEach(v=>{const y=Y(v).toFixed(1);g+=`<line class="${v===0?'base':'gl'}" x1="${pl}" x2="${W-pr}" y1="${y}" y2="${y}"/><text class="tl" x="${pl-8}" y="${(+y+5).toFixed(1)}" text-anchor="end">${esc(tick(v))}</text>`});
+  rows.forEach((r,i)=>{const x=pl+i*bw,cw=Math.max(2,bw*0.34),y0=Y(0);
+    const ya=Y(Math.max(0,r.a));g+=`<rect class="ca" x="${(x+bw*0.12).toFixed(1)}" y="${ya.toFixed(1)}" width="${cw.toFixed(1)}" height="${Math.max(0,y0-ya).toFixed(1)}"/>`;
+    const yb=r.b>=0?Y(r.b):y0,hb=Math.abs(Y(r.b)-y0);g+=`<rect class="cb ${r.b<0?'neg':''}" x="${(x+bw*0.5).toFixed(1)}" y="${yb.toFixed(1)}" width="${cw.toFixed(1)}" height="${hb.toFixed(1)}"/>`;
+    if(rows.length<=6||i%2===(rows.length-1)%2)g+=`<text class="tl" x="${(x+bw/2).toFixed(1)}" y="${H-8}" text-anchor="middle">${esc(r.label)}</text>`});
+  return `<svg class="chart" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Vendite mensili">${g}</svg>`;
+}
+function barsHTML(rows){
+  const tot=sum(rows,r=>r.v),max=Math.max(...rows.map(r=>r.v),0.01);
+  return rows.map(r=>`<div class="bar"><span class="bar-l">${esc(r.label)}</span><span class="bar-v">${fmtE0(r.v)} <small>${tot?Math.round(r.v/tot*100):0}%</small></span><span class="bar-t"><i style="width:${(r.v/max*100).toFixed(1)}%"></i></span></div>`).join('');
+}
+const wOf=el=>Math.max(260,(el&&el.clientWidth)||300);
+
+/* ================= interfaccia: utilità ================= */
+let toastT;
+function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
+function led(busy){$('#led').classList.toggle('busy',!!busy)}
+function ro(label,val,sub,cls){return `<div class="ro"><span class="ro-l">${esc(label)}</span><b class="ro-v ${cls||''}">${val}</b>${sub?`<span class="ro-s">${sub}</span>`:''}</div>`}
+function tile(c,own,extra){
+  const sc=c.set?c.set.id:setIdOf(c.id),img=imgOf(c);
+  return `<button class="tile ${own?'own':''} ${extra||''}" data-card="${esc(c.id)}"><span class="art">${img?`<img loading="lazy" src="${esc(img)}" alt="">`:''}</span><span class="tl"><b>${esc(c.name)}</b><small>${esc(sc)} · ${esc(c.localId)}</small></span></button>`;
+}
+function itemRow(i,showPort){
+  const t=trendOf(i.cm),val=valueOf(i),g=i.buyPrice!=null?val-costOf(i):null;
+  const chips=[];
+  if(showPort)chips.push(`<span class="chip">${i.portfolio==='negozio'?'negozio':'collezione'}</span>`);
+  if((+i.qty||1)>1)chips.push(`<span class="chip inv">×${i.qty}</span>`);
+  if(i.status==='venduto')chips.push(`<span class="chip up">venduta ${fmtE(i.soldPrice)}</span>`);
+  else if(i.portfolio==='negozio'&&i.sellPrice!=null)chips.push(`<span class="chip amber">in vendita ${fmtE(i.sellPrice)}</span>`);
+  if(i.manualPrice!=null)chips.push('<span class="chip">prezzo manuale</span>');
+  if(t&&ok(t.p))chips.push(`<span class="chip ${t.p>=0?'up':'down'}">${t.p>=0?'▲':'▼'} ${fmtP(t.p)}</span>`);
+  return `<button class="li" data-item="${esc(i.id)}"><img src="${esc(imgOf(i))}" alt="" loading="lazy"><span class="li-t"><b>${esc(i.name)}</b><small>${esc(i.setName)} · ${esc(i.localId)} · ${esc(i.variantLabel||VTYPE[i.variant]||i.variant)} · ${esc(LANGS[i.lang]||i.lang)} · ${esc(i.cond)}</small><span class="chips">${chips.join('')}</span></span><span class="li-v"><b>${fmtE(val)}</b>${g!=null?`<small class="${g>=0?'up':'down'}">${g>=0?'+':''}${fmtE(g)}</small>`:`<small>${unitOf(i)!=null?'cad. '+fmtE(unitOf(i)):'senza prezzo'}</small>`}</span></button>`;
+}
+function mrow(x){
+  const t=trendOf(x.cm);
+  return `<button class="li" data-card="${esc(x.id)}"><img src="${esc(imgOf(x))}" alt="" loading="lazy"><span class="li-t"><b>${esc(x.name)}</b><small>${esc(x.setName||setIdOf(x.id))} · ${esc(x.localId||'')}${x.label&&x.label!=='Normale'?' · '+esc(x.label):''}</small></span><span class="li-v"><b>${fmtE(x.eur)}</b><span class="sp">${sparkSVG(x.cm,44,20)}<small class="${t&&ok(t.p)?(t.p>=0?'up':'down'):''}">${t&&ok(t.p)?fmtP(t.p):'—'}</small></span></span></button>`;
+}
+
+/* ================= navigazione ================= */
+function show(tab){
+  S.tab=tab;['home','scan','sets','set','cards','market','more'].forEach(t=>$('#p-'+t).hidden=t!==tab);
+  $$('.key').forEach(k=>k.classList.toggle('on',k.dataset.t===tab||(tab==='set'&&k.dataset.t==='sets')));
+  $('#screen-name').textContent=tab==='set'&&S.curSet?S.curSet.name:TABNAME[tab];
+  render();window.scrollTo(0,0);
+}
+function render(){({home:renderHome,sets:renderSets,set:drawSet,cards:renderCards,market:renderMarket,more:renderMore}[S.tab]||(()=>{}))()}
+$$('.key').forEach(k=>k.onclick=()=>show(k.dataset.t));
+document.addEventListener('click',e=>{
+  const go=e.target.closest('[data-go]');if(go){show(go.dataset.go);return}
+  const t=e.target.closest('[data-card],[data-item],[data-set]');if(!t)return;
+  if(t.dataset.item)openItem(t.dataset.item);else if(t.dataset.card)openCard(t.dataset.card,t.dataset.variant);else if(t.dataset.set)openSet(t.dataset.set);
+});
+document.addEventListener('error',e=>{if(e.target&&e.target.tagName==='IMG')e.target.classList.add('broken')},true);
+let rsT;window.addEventListener('resize',()=>{clearTimeout(rsT);rsT=setTimeout(()=>{if(S.tab==='home'||S.tab==='market')render()},250)});
+function tickClock(){const d=new Date();$('#clock').textContent=pad(d.getHours())+':'+pad(d.getMinutes())}
+
+/* ================= PANORAMICA ================= */
+function renderHome(){
+  const av=avail(),pers=av.filter(i=>i.portfolio==='personale'),shop=av.filter(i=>i.portfolio==='negozio');
+  const vP=sum(pers,valueOf),vS=sum(shop,valueOf),tot=vP+vS,cost=sum(av,costOf);
+  const days=Object.keys(S.hist).sort(),prevDay=days.filter(d=>d<today()).pop(),prev=prevDay?S.hist[prevDay].total:null;
+  const idx=collIndex(av),d=prev!=null?tot-prev:null;
+  $('#home-stats').innerHTML=
+    ro('Valore totale',fmtE(tot),d!=null?`<span class="${d>=0?'up':'down'}">${d>=0?'▲':'▼'} ${fmtE(Math.abs(d))}</span> dal ${prevDay.slice(8)}/${prevDay.slice(5,7)}`:'collezione + magazzino')+
+    ro('Collezione',fmtE(vP),sum(pers,i=>+i.qty||1)+' carte')+
+    ro('Magazzino',fmtE(vS),sum(shop,i=>+i.qty||1)+' carte · costo '+fmtE(sum(shop,costOf)))+
+    ro('Guadagno latente',fmtE(tot-cost),'valore − prezzo d\'acquisto',tot-cost>=0?'up':'down')+
+    ro('Tendenza 7/30 gg',idx.n?fmtP(idx.p):'—',idx.n?'Cardmarket, '+idx.n+' righe':'serve una carta con prezzo',idx.n?(idx.p>=0?'up':'down'):'')+
+    ro('Wishlist',fmtE(sum(S.wish,w=>w.priceEur)),S.wish.length+' carte a prezzo di mercato');
+  $('#home-start').hidden=S.items.length+S.wish.length>0;
+  const el=$('#home-chart'),pts=days.slice(-30).map(k=>({x:k.slice(8)+'/'+k.slice(5,7),y:S.hist[k].total}));
+  if(pts.length>=2){el.innerHTML=lineSVG([{pts}],{w:wOf(el),h:170,area:true,label:'Valore negli ultimi 30 giorni'});$('#home-chart-sub').textContent=pts.length+' rilevazioni'}
+  else{el.innerHTML=`<div class="empty"><b>Il grafico si riempie da solo</b>Ogni giorno in cui apri l'app viene salvato il valore delle tue carte. Dalla seconda rilevazione compare la linea.</div>`;$('#home-chart-sub').textContent=pts.length?'1 rilevazione':''}
+  const hit=S.wish.filter(w=>w.target!=null&&w.priceEur!=null&&w.priceEur<=w.target);
+  $('#home-alerts').innerHTML=hit.length?hit.map(w=>`<button class="li" data-card="${esc(w.cardId)}"><img src="${esc(imgOf(w))}" alt=""><span class="li-t"><b>${esc(w.name)}</b><small>${esc(w.setName)} · ${esc(w.localId)}</small></span><span class="li-v"><b class="up">${fmtE(w.priceEur)}</b><small>obiettivo ${fmtE(w.target)}</small></span></button>`).join(''):'<p class="note">Nessuna carta della wishlist è sotto il prezzo obiettivo.</p>';
+  const rec=S.items.slice().sort((a,b)=>(b.addedAt+b.id).localeCompare(a.addedAt+a.id)).slice(0,5);
+  $('#home-recent').innerHTML=rec.length?rec.map(i=>itemRow(i,true)).join(''):'<p class="note">Ancora nessuna carta.</p>';
+}
+
+/* ================= aggiornamento prezzi e storico ================= */
+async function refreshPrices(manual){
+  if(S.refreshing)return;
+  const ids=[...new Set(avail().concat(S.wish).map(x=>x.cardId))];
+  if(!ids.length){if(manual)toast('Nessuna carta da aggiornare');return}
+  S.refreshing=true;led(true);const b=$('#btn-refresh');b.disabled=true;b.innerHTML='<span class="spin"></span>Aggiorno';
+  let okN=0,ko=0;const cards={};
+  await pool(ids,4,async id=>{
+    try{const c=await getCard(id,{force:true,lang:'en'}).catch(e=>{if(e.net)throw e;return getCard(id,{force:true})});okN++;
+      for(const i of S.items.filter(x=>x.cardId===id)){const p=priceFor(c,i.variant);if(p.cm||p.usd!=null){i.cm=p.cm;i.priceEur=p.eur;i.priceUsd=p.usd;i.priceUpdated=today();await store.put('items',i)}if(i.status!=='venduto'&&p.eur!=null)cards[id+'|'+i.variant]=p.eur}
+      for(const w of S.wish.filter(x=>x.cardId===id)){const p=priceFor(c,w.variant);w.cm=p.cm;w.priceEur=p.eur;w.priceUsd=p.usd;await store.put('wishlist',w);if(p.eur!=null)cards[id+'|'+w.variant]=p.eur}
+    }catch(e){ko++}
+  });
+  if(okN){const av=avail(),pers=sum(av.filter(i=>i.portfolio==='personale'),valueOf),shop=sum(av.filter(i=>i.portfolio==='negozio'),valueOf);
+    const doc={id:today(),total:pers+shop,personale:pers,negozio:shop,cards};S.hist[doc.id]=doc;await store.put('history',doc);await store.set('lastRefresh',today())}
+  S.refreshing=false;led(false);b.disabled=false;b.textContent='Aggiorna prezzi';
+  $('#refresh-note').textContent=okN?`Aggiornato oggi: ${okN} carte${ko?', '+ko+' non raggiunte':''}`:'Prezzi non raggiungibili ora';
+  if(manual||okN)toast(okN?`Prezzi aggiornati (${okN} carte)`:'Prezzi non raggiungibili');
+  render();
+}
+$('#btn-refresh').onclick=()=>refreshPrices(true);
+
+/* ================= SCANNER ================= */
+let ocrW=null,ocrP=null;
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('Lettore di testo non scaricabile'));document.head.appendChild(s)})}
+function ocr(){if(ocrW)return Promise.resolve(ocrW);if(!ocrP)ocrP=(async()=>{if(!window.Tesseract)await loadScript(TESS);const w=await Tesseract.createWorker('eng');try{await w.setParameters({tessedit_pageseg_mode:'11'})}catch(e){}ocrW=w;return w})().catch(e=>{ocrP=null;throw e});return ocrP}
+function loadImg(file){return new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=()=>rej(new Error('Formato foto non leggibile'));im.src=URL.createObjectURL(file)})}
+function crop(im,y0,y1,scale){
+  const sw=im.naturalWidth,sh=im.naturalHeight,top=Math.round(sh*y0),h=Math.round(sh*(y1-y0));
+  const k=Math.min(scale,2400/sw),c=document.createElement('canvas');c.width=Math.round(sw*k);c.height=Math.round(h*k);
+  const x=c.getContext('2d');x.drawImage(im,0,top,sw,h,0,0,c.width,c.height);
+  const d=x.getImageData(0,0,c.width,c.height),p=d.data;
+  for(let i=0;i<p.length;i+=4){let g=0.299*p[i]+0.587*p[i+1]+0.114*p[i+2];g=(g-128)*1.5+128;g=g<0?0:g>255?255:g;p[i]=p[i+1]=p[i+2]=g}
+  x.putImageData(d,0,0);return c;
+}
+const STOP=new Set(['basic','base','stage','fase','evolves','evolve','from','evoluzione','pokemon','trainer','allenatore','strumento','item','supporter','aiuto','stadium','stadio','energy','energia','tera','ability','abilita','attack','weakness','resistance','retreat','debolezza','resistenza','ritirata','illus','rule','regola']);
+function parseOcr(top,bottom){
+  let n=null,total=null;
+  for(const t of [bottom,top]){const m=[...String(t).matchAll(/(\d{1,3})\s*[\/⁄|]\s*(\d{2,3})/g)];for(const x of m){const a=+x[1],b=+x[2];if(b>=20&&a>0&&a<=b+150){n=a;total=b;break}}if(n)break}
+  let name=null;
+  for(const line of String(top).split('\n')){if(/illus|©|nintendo|creatures|game\s*freak/i.test(line))continue;const w=(line.match(/[A-Za-zÀ-ÿ'’.\-]{3,}/g)||[]).filter(x=>!STOP.has(norm(x))&&!/^(hp|ps)$/i.test(x));const pick=w.find(x=>x.length>=4&&/^[A-ZÀ-Ý]/.test(x))||w.find(x=>x.length>=4);if(pick){name=pick.replace(/[.'’\-]+$/,'');break}}
+  return {n,total,name};
+}
+async function byNumber(n,total,name){
+  const cat=await catalog();const sets=cat.sets.filter(s=>s.official===total).slice(-12).reverse();
+  const same=(a,b)=>String(a)===String(b)||(/^\d+$/.test(String(a))&&parseInt(a,10)===b);
+  const out=[];await pool(sets,4,async s=>{const d=await getSet(s.id);const c=(d.cards||[]).find(x=>same(x.localId,n));if(c)out.push(c)});
+  if(name){const nn=norm(name);out.sort((a,b)=>(norm(b.name).includes(nn)?1:0)-(norm(a.name).includes(nn)?1:0))}
+  return out;
+}
+async function byName(q){
+  const path='/cards?name='+encodeURIComponent(q)+'&pagination:page=1&pagination:itemsPerPage=60';
+  let r=null;if(S.prefs.lang!=='en'){try{r=await j('/'+S.prefs.lang+path)}catch(e){if(e.net)throw e}}
+  if(!r||!r.length)r=await j('/en'+path);return r||[];
+}
+async function searchCards(q,hintNum){
+  q=q.trim();if(!q)return [];
+  const idm=q.match(/^([a-z0-9.]+-[a-z0-9]+)$/i);
+  if(idm&&/\d/.test(q)){try{const c=await getCard(q.toLowerCase());if(c)return [c]}catch(e){if(e.net)throw e}}
+  const nm=q.match(/(\d{1,3})\s*\/\s*(\d{2,3})/);
+  if(nm){const name=q.replace(nm[0],'').trim();const r=await byNumber(+nm[1],+nm[2],name);if(r.length)return r;if(name)return searchCards(name,+nm[1]);return []}
+  const r=await byName(q);
+  if(hintNum)r.sort((a,b)=>(parseInt(b.localId,10)===hintNum)-(parseInt(a.localId,10)===hintNum));
+  return r;
+}
+async function showResults(q,box,note){
+  note.innerHTML='<span class="spin"></span>Cerco…';box.innerHTML='';
+  try{await catalog().catch(()=>null);const r=await searchCards(q);const own=ownedIds();
+    note.textContent=r.length?r.length+(r.length>=60?' risultati, mostro i primi 60: aggiungi il numero per restringere':' risultati'):'Nessuna carta trovata. Prova con il nome in inglese o con il numero (es. 136/189).';
+    box.innerHTML=r.map(c=>tile(c,own.has(c.id))).join('');
+  }catch(e){note.textContent=e.net?'Nessuna connessione: riprova quando sei online.':'Ricerca non riuscita: '+e.message}
+}
+$('#search-form').onsubmit=e=>{e.preventDefault();showResults($('#q').value,$('#search-results'),$('#search-note'))};
+const jobs=[];let jobRunning=false;
+function addPhotos(files){
+  const q=$('#scan-queue');
+  [...files].forEach(f=>{const el=document.createElement('div');el.className='job';
+    el.innerHTML=`<img class="job-img" alt="Foto della carta"><div class="job-b"><p class="job-s"><span class="spin"></span>In coda</p><form class="row"><input class="grow" placeholder="Nome o 136/189" aria-label="Cerca questa carta" autocomplete="off"><button class="btn sm" type="submit">Cerca</button></form></div><div class="grid sm job-r"></div>`;
+    $('img',el).src=URL.createObjectURL(f);q.prepend(el);
+    const st=$('.job-s',el),inp=$('input',el),res=$('.job-r',el);
+    $('form',el).onsubmit=e=>{e.preventDefault();showResults(inp.value,res,st)};
+    jobs.push({f,el,st,inp,res});
+  });
+  runJobs();
+}
+async function runJobs(){
+  if(jobRunning)return;jobRunning=true;led(true);
+  while(jobs.length){const jb=jobs.shift();await scanJob(jb)}
+  jobRunning=false;led(false);
+}
+async function scanJob(jb){
+  const {f,st,inp,res}=jb;
+  try{
+    st.innerHTML='<span class="spin"></span>'+(ocrW?'Leggo la carta…':'Preparo il lettore di testo (solo la prima volta)…');
+    const [w,im]=await Promise.all([ocr(),loadImg(f)]);
+    st.innerHTML='<span class="spin"></span>Leggo la carta…';
+    const portrait=im.naturalHeight>=im.naturalWidth;
+    const bot=crop(im,portrait?0.80:0.70,1,2),top=crop(im,0,portrait?0.16:0.25,1.5);
+    const tb=(await w.recognize(bot)).data.text||'',tt=(await w.recognize(top)).data.text||'';
+    let r=parseOcr(tt,tb);
+    if(!r.n&&!r.name){const full=crop(im,0,1,1);const tf=(await w.recognize(full)).data.text||'';r=parseOcr(tf,tf)}
+    const q=[r.name,r.n?r.n+'/'+r.total:''].filter(Boolean).join(' ');
+    inp.value=q;
+    if(!q){st.textContent='Non riesco a leggere la carta: scrivi il nome o il numero qui sotto.';return}
+    st.textContent='Letto: '+q+' · tocca la carta giusta';
+    await catalog().catch(()=>null);
+    let list=[];
+    if(r.n)list=await byNumber(r.n,r.total,r.name);
+    if(!list.length&&r.name)list=(await byName(r.name)).sort((a,b)=>(parseInt(b.localId,10)===r.n)-(parseInt(a.localId,10)===r.n)).slice(0,24);
+    const own=ownedIds();
+    res.innerHTML=list.length?list.slice(0,24).map(c=>tile(c,own.has(c.id))).join(''):'';
+    if(!list.length)st.textContent='Letto: '+q+' · nessuna corrispondenza, correggi il testo e premi Cerca.';
+  }catch(e){st.textContent=(e.net?'Nessuna connessione. ':'')+(e.message&&!e.net?e.message+'. ':'')+'Scrivi nome o numero e premi Cerca.'}
+}
+$('#in-cam').onchange=e=>{if(e.target.files.length)addPhotos(e.target.files);e.target.value=''};
+$('#in-gal').onchange=e=>{if(e.target.files.length)addPhotos(e.target.files);e.target.value=''};
+
+/* ================= SET ================= */
+async function renderSets(){
+  const note=$('#sets-note');
+  if(!S.cat)note.innerHTML='<span class="spin"></span>Carico il catalogo…';
+  try{await catalog();
+    const sel=$('#serie-filter');if(sel.options.length<=1)S.cat.series.slice().reverse().forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.name;sel.appendChild(o)});
+    note.textContent=S.cat.sets.length+' set';drawSets();
+  }catch(e){note.textContent=e.net?'Catalogo non raggiungibile: serve la connessione la prima volta.':'Catalogo non caricato: '+e.message}
+}
+function drawSets(){
+  if(!S.cat)return;
+  const q=norm($('#set-filter').value),sr=$('#serie-filter').value,own={};
+  avail().forEach(i=>{(own[i.setId]=own[i.setId]||new Set()).add(i.cardId)});
+  const list=S.cat.sets.filter(s=>(!sr||s.serieId===sr)&&(!q||norm(s.name).includes(q)||norm(s.id).includes(q)));
+  const by={};list.forEach(s=>(by[s.serieId]=by[s.serieId]||[]).push(s));
+  const out=S.cat.series.slice().reverse().filter(s=>by[s.id]).map(s=>`<h3 class="serie-h">${esc(s.name)}</h3><div class="setgrid">${by[s.id].slice().reverse().map(x=>{const o=own[x.id]?own[x.id].size:0,t=x.total||x.official||0;
+    return `<button class="settile" data-set="${esc(x.id)}"><span class="lg">${x.logo?`<img src="${esc(x.logo)}.webp" alt="" loading="lazy">`:''}</span><b>${esc(x.name)}</b><small>${esc(x.id)} · ${x.official??'?'} carte${o?' · '+o+' tue':''}</small>${o?`<span class="pbar"><i style="width:${t?Math.min(100,o/t*100):0}%"></i></span>`:''}</button>`}).join('')}</div>`).join('');
+  $('#setlist').innerHTML=out||'<p class="empty">Nessun set trovato.</p>';
+}
+$('#set-filter').oninput=drawSets;$('#serie-filter').onchange=drawSets;
+async function openSet(id){
+  S.curSet=null;show('set');$('#set-head').innerHTML='<p><span class="spin"></span>Carico il set…</p>';$('#set-cards').innerHTML='';
+  try{S.curSet=await getSet(id);$('#screen-name').textContent=S.curSet.name;drawSet()}catch(e){$('#set-head').innerHTML=`<p class="msg bad">${e.net?'Serve la connessione per aprire il set.':'Set non caricato: '+esc(e.message)}</p>`}
+}
+function drawSet(){
+  const s=S.curSet;if(!s)return;const cards=s.cards||[],own=ownedIds(),mine=cards.filter(c=>own.has(c.id)).length;
+  $('#set-title').textContent=s.name;$('#set-code').textContent=s.id;$('#set-progress').textContent=mine+'/'+cards.length;
+  $('#set-head').innerHTML=`<div class="row">${s.logo?`<img src="${esc(s.logo)}.webp" alt="" style="height:46px;max-width:48%;object-fit:contain">`:''}<p class="note grow">${esc(s.serie?s.serie.name:'')}${s.releaseDate?' · uscita '+esc(s.releaseDate.split('-').reverse().join('/')):''} · ${s.cardCount?s.cardCount.official:cards.length} carte ufficiali, ${cards.length} totali</p></div><span class="pbar"><i style="width:${cards.length?mine/cards.length*100:0}%"></i></span><p class="note">Completamento ${cards.length?Math.round(mine/cards.length*100):0}%</p>`;
+  const q=norm($('#set-card-filter').value),only=$('#set-only').value;
+  const qn=/^\d+$/.test(q)?parseInt(q,10):null;
+  const list=cards.filter(c=>(!q||norm(c.name).includes(q)||norm(c.localId)===q||(qn!==null&&parseInt(c.localId,10)===qn))&&(only==='all'||(only==='mine')===own.has(c.id)));
+  $('#set-cards').innerHTML=list.map(c=>tile(c,own.has(c.id),only==='all'&&mine&&!own.has(c.id)?'miss':'')).join('')||'<p class="empty">Nessuna carta.</p>';
+}
+$('#set-card-filter').oninput=drawSet;$('#set-only').onchange=drawSet;
+
+/* ================= CARTE: collezione, negozio, wishlist ================= */
+$$('#coll-seg button').forEach(b=>b.onclick=()=>{S.coll=b.dataset.c;$$('#coll-seg button').forEach(x=>x.classList.toggle('on',x===b));renderCards()});
+$('#coll-filter').oninput=renderCards;$('#coll-sort').onchange=renderCards;$('#shop-status').onchange=renderCards;
+function renderCards(){
+  const c=S.coll,shop=c==='negozio',wish=c==='wish';
+  $('#shop-tools').hidden=!shop;$('#coll-title').textContent=shop?'Magazzino negozio':wish?'Wishlist':'Collezione';
+  const q=norm($('#coll-filter').value),srt=$('#coll-sort').value;
+  if(wish){
+    const tot=sum(S.wish,w=>w.priceEur),hit=S.wish.filter(w=>w.target!=null&&w.priceEur!=null&&w.priceEur<=w.target).length;
+    $('#coll-stats').innerHTML=ro('Carte desiderate',String(S.wish.length))+ro('Costo a mercato',fmtE(tot),'somma Cardmarket')+ro('Sotto obiettivo',String(hit),'pronte da comprare',hit?'up':'');
+    let l=S.wish.filter(w=>!q||norm(w.name+w.setName+w.localId+w.setId).includes(q));
+    l.sort((a,b)=>srt==='value'?(b.priceEur||0)-(a.priceEur||0):srt==='name'?a.name.localeCompare(b.name):srt==='trend'?((trendOf(b.cm)||{}).p??-9)-((trendOf(a.cm)||{}).p??-9):(b.addedAt+b.id).localeCompare(a.addedAt+a.id));
+    $('#coll-count').textContent=l.length;
+    $('#coll-list').innerHTML=l.length?l.map(w=>{const h=w.target!=null&&w.priceEur!=null&&w.priceEur<=w.target,t=trendOf(w.cm);
+      return `<div class="li" style="cursor:default"><img src="${esc(imgOf(w))}" alt=""><span class="li-t"><b>${esc(w.name)}</b><small>${esc(w.setName)} · ${esc(w.localId)} · ${esc(w.variantLabel||'')}</small><span class="row" style="margin-top:6px"><input inputmode="decimal" placeholder="obiettivo €" value="${w.target??''}" data-target="${esc(w.id)}" aria-label="Prezzo obiettivo" style="width:110px;padding:5px 7px"><button class="btn ghost sm" data-card="${esc(w.cardId)}">Scheda</button><button class="btn danger sm" data-rmw="${esc(w.id)}">Togli</button></span></span><span class="li-v"><b class="${h?'up':''}">${fmtE(w.priceEur)}</b><small class="${t&&ok(t.p)?(t.p>=0?'up':'down'):''}">${h?'sotto obiettivo':t&&ok(t.p)?fmtP(t.p):''}</small></span></div>`}).join(''):'<div class="empty"><b>Wishlist vuota</b>Apri una carta e premi «Wishlist». Con un prezzo obiettivo ricevi l\'avviso in Panoramica quando scende.</div>';
+    $$('[data-target]').forEach(inp=>inp.onchange=async()=>{const w=S.wish.find(x=>x.id===inp.dataset.target);w.target=num(inp.value);await store.put('wishlist',w);toast('Obiettivo salvato');renderCards()});
+    $$('[data-rmw]').forEach(b=>b.onclick=async()=>{S.wish=S.wish.filter(x=>x.id!==b.dataset.rmw);await store.del('wishlist',b.dataset.rmw);toast('Tolta dalla wishlist');renderCards()});
+    return;
+  }
+  const all=S.items.filter(i=>i.portfolio===c),av=all.filter(i=>i.status!=='venduto'),sold=all.filter(i=>i.status==='venduto');
+  const val=sum(av,valueOf),cost=sum(av,costOf),pcs=sum(av,i=>+i.qty||1);
+  if(shop){const rev=sum(sold,i=>(+i.soldPrice||0)*(+i.qty||1)),sc=sum(sold,costOf);
+    $('#coll-stats').innerHTML=ro('A mercato',fmtE(val),pcs+' carte')+ro('A costo',fmtE(cost),'margine potenziale '+fmtE(val-cost))+ro('Incassato',fmtE(rev),sold.length+' vendite')+ro('Margine realizzato',fmtE(rev-sc),'incasso − acquisto',rev-sc>=0?'up':'down');
+  }else{const ix=collIndex(av);
+    $('#coll-stats').innerHTML=ro('Valore',fmtE(val),pcs+' carte · '+new Set(av.map(i=>i.cardId)).size+' diverse')+ro('Spesa',fmtE(cost),`<span class="${val-cost>=0?'up':'down'}">${val-cost>=0?'+':''}${fmtE(val-cost)}</span>`)+ro('Tendenza 7/30 gg',ix.n?fmtP(ix.p):'—','Cardmarket',ix.n?(ix.p>=0?'up':'down'):'');
+  }
+  const stt=shop?$('#shop-status').value:'disponibile';
+  let l=all.filter(i=>stt==='all'||(i.status||'disponibile')===stt).filter(i=>!q||norm(i.name+i.setName+i.localId+i.setId).includes(q));
+  const gain=i=>valueOf(i)-costOf(i);
+  l.sort((a,b)=>srt==='value'?valueOf(b)-valueOf(a):srt==='name'?a.name.localeCompare(b.name):srt==='set'?(a.setId+String(a.localId).padStart(4,'0')).localeCompare(b.setId+String(b.localId).padStart(4,'0')):srt==='gain'?gain(b)-gain(a):srt==='trend'?((trendOf(b.cm)||{}).p??-9)-((trendOf(a.cm)||{}).p??-9):(b.addedAt+b.id).localeCompare(a.addedAt+a.id));
+  $('#coll-count').textContent=l.length;
+  $('#coll-list').innerHTML=l.length?l.map(i=>itemRow(i)).join(''):`<div class="empty"><b>${shop?'Magazzino vuoto':'Nessuna carta'}</b>Cerca o scansiona una carta e premi «Aggiungi»${shop?' scegliendo «Negozio»':''}.</div>`;
+}
+
+/* ================= scheda carta ================= */
+function modal(html){const r=$('#modal-root');r.innerHTML=`<div class="modal" id="mod"><div class="sheet" role="dialog" aria-modal="true"><div class="sheet-in">${html}</div></div></div>`;document.body.classList.add('lock');
+  $('#mod').onclick=e=>{if(e.target.id==='mod')closeModal()};$$('.x',r).forEach(b=>b.onclick=closeModal);return r}
+function closeModal(){$('#modal-root').innerHTML='';document.body.classList.remove('lock')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#mod'))closeModal()});
+const X='<button class="x" aria-label="Chiudi">×</button>';
+async function openCard(id,variant){
+  modal(`<div class="sheet-hd"><h2 class="grow"><span class="spin"></span>Carico…</h2>${X}</div>`);
+  let c;try{c=await getCard(id)}catch(e){modal(`<div class="sheet-hd"><h2 class="grow">Carta non disponibile</h2>${X}</div><p class="msg bad">${e.net?'Serve la connessione per aprire la scheda.':esc(e.message)}</p>`);return}
+  const vs=variantsOf(c),mine=S.items.filter(i=>i.cardId===id),inWish=S.wish.find(w=>w.cardId===id);
+  const vk=vs.some(v=>v.key===variant)?variant:vs[0].key;
+  const off=c.set&&c.set.cardCount?c.set.cardCount.official:'';
+  const cmUrl='https://www.cardmarket.com/it/Pokemon/Products/Search?searchString='+encodeURIComponent(c.name);
+  const r=modal(`
+    <div class="sheet-hd"><div class="grow"><h2>${esc(c.name)}</h2><p>${esc(c.set?c.set.name:'')} · ${esc(c.localId)}${off?'/'+off:''}${c.rarity?' · '+esc(c.rarity):''}${c.illustrator?' · ill. '+esc(c.illustrator):''}</p></div>${X}</div>
+    <div class="cardbig"><div class="art">${c.image?`<img src="${esc(imgOf(c,'high'))}" alt="${esc(c.name)}">`:''}</div>
+      <div class="win-b" style="padding:0">
+        <div><label class="lbl" for="cs-var">Variante</label><select id="cs-var">${vs.map(v=>`<option value="${esc(v.key)}"${v.key===vk?' selected':''}>${esc(v.label)}</option>`).join('')}</select></div>
+        <div class="kv" id="cs-prices"></div>
+      </div></div>
+    <div class="win"><div class="win-t"><span>Andamento Cardmarket</span><small id="cs-trend"></small></div><div class="win-b" id="cs-chart"></div></div>
+    <div class="win" id="cs-histw" hidden><div class="win-t"><span>Prezzi salvati dall'app</span></div><div class="win-b" id="cs-hist"></div></div>
+    ${mine.length?`<div class="win"><div class="win-t"><span>Nelle tue carte</span><small>${mine.length}</small></div><div class="win-b"><div class="list">${mine.map(i=>itemRow(i,true)).join('')}</div></div></div>`:''}
+    <div class="win"><div class="win-t"><span>Aggiungi</span></div><div class="win-b">
+      <div class="form">
+        <div><label class="lbl" for="f-port">Dove</label><select id="f-port"><option value="personale">Collezione</option><option value="negozio">Negozio</option></select></div>
+        <div><label class="lbl" for="f-lang">Lingua</label><select id="f-lang">${Object.entries(LANGS).map(([k,v])=>`<option value="${k}"${S.prefs.lang===k?' selected':''}>${v}</option>`).join('')}</select></div>
+        <div><label class="lbl" for="f-cond">Condizione</label><select id="f-cond">${COND.map(x=>`<option${x==='NM'?' selected':''}>${x}</option>`).join('')}</select></div>
+        <div><label class="lbl" for="f-qty">Quantità</label><input id="f-qty" inputmode="numeric" value="1"></div>
+        <div><label class="lbl" for="f-buy">Prezzo acquisto €</label><input id="f-buy" inputmode="decimal" placeholder="0,00"></div>
+        <div><label class="lbl" for="f-man">Prezzo manuale €</label><input id="f-man" inputmode="decimal" placeholder="vuoto = Cardmarket"></div>
+        <div id="f-sell-w" hidden><label class="lbl" for="f-sell">Prezzo vendita €</label><input id="f-sell" inputmode="decimal"></div>
+        <div class="full"><label class="lbl" for="f-note">Note</label><input id="f-note" placeholder="es. gradata PSA 9, presa in fiera"></div>
+      </div>
+      <div class="row"><button class="btn amber" id="f-add">Aggiungi</button>${inWish?'<button class="btn ghost" id="f-unwish">Togli dalla wishlist</button>':'<input id="f-target" inputmode="decimal" placeholder="obiettivo €" aria-label="Prezzo obiettivo" style="width:118px"><button class="btn ghost" id="f-wish">Wishlist</button>'}</div>
+    </div></div>
+    <p class="note"><a href="${esc(cmUrl)}" target="_blank" rel="noopener">Cerca su Cardmarket</a> · ID ${esc(c.id)}</p>`);
+  const drawPrices=()=>{
+    const k=$('#cs-var',r).value,p=priceFor(c,k),cm=p.cm||{},t=trendOf(p.cm);
+    $('#cs-prices',r).innerHTML=`<span>Tendenza</span><b>${fmtE(cm.trend)}</b><span>Media</span><b>${fmtE(cm.avg)}</b><span>Minimo</span><b>${fmtE(cm.low)}</b><span>Media 1 g</span><b>${fmtE(cm.avg1)}</b><span>Media 7 gg</span><b>${fmtE(cm.avg7)}</b><span>Media 30 gg</span><b>${fmtE(cm.avg30)}</b><span>TCGplayer</span><b>${fmtU(p.usd)}</b><span>Aggiornato</span><b>${cm.updated?esc(cm.updated.slice(0,10).split('-').reverse().join('/')):'—'}</b>`;
+    const ch=$('#cs-chart',r);
+    if(t&&[t.a30,t.a7,t.a1].filter(ok).length>=2){ch.innerHTML=lineSVG([{pts:[{x:'media 30 gg',y:t.a30},{x:'7 gg',y:t.a7},{x:'1 g',y:t.a1}]}],{w:wOf(ch),h:160,area:true,label:'Medie Cardmarket'})+`<p class="note">7 giorni rispetto a 30 giorni: <b class="${t.p>=0?'up':'down'}">${fmtP(t.p)}</b>.</p>`;$('#cs-trend',r).textContent=fmtP(t.p)}
+    else{ch.innerHTML='<p class="note">Cardmarket non ha abbastanza vendite recenti per questa variante.</p>';$('#cs-trend',r).textContent=''}
+    const key=id+'|'+k,days=Object.keys(S.hist).sort().filter(d=>S.hist[d].cards&&S.hist[d].cards[key]!=null);
+    $('#cs-histw',r).hidden=days.length<2;
+    if(days.length>=2){const h=$('#cs-hist',r);h.innerHTML=lineSVG([{pts:days.map(d=>({x:d.slice(8)+'/'+d.slice(5,7),y:S.hist[d].cards[key]}))}],{w:wOf(h),h:150,label:'Prezzi salvati'})}
+  };
+  drawPrices();$('#cs-var',r).onchange=drawPrices;
+  $('#f-port',r).onchange=e=>{$('#f-sell-w',r).hidden=e.target.value!=='negozio'};
+  $('#f-add',r).onclick=async()=>{
+    const k=$('#cs-var',r).value,p=priceFor(c,k),v=vs.find(x=>x.key===k)||vs[0];
+    const it={id:uid(),cardId:c.id,name:c.name,setId:c.set?c.set.id:setIdOf(c.id),setName:c.set?c.set.name:'',localId:String(c.localId),image:c.image||'',rarity:c.rarity||'',
+      portfolio:$('#f-port',r).value,variant:k,variantLabel:v.label,lang:$('#f-lang',r).value,cond:$('#f-cond',r).value,qty:Math.max(1,parseInt($('#f-qty',r).value,10)||1),
+      buyPrice:num($('#f-buy',r).value),sellPrice:num($('#f-sell',r).value),manualPrice:num($('#f-man',r).value),notes:$('#f-note',r).value.trim(),
+      status:'disponibile',soldPrice:null,soldDate:null,cm:p.cm,priceEur:p.eur,priceUsd:p.usd,priceUpdated:today(),addedAt:today()};
+    S.items.push(it);await store.put('items',it);closeModal();toast('Aggiunta a '+(it.portfolio==='negozio'?'negozio':'collezione'));render();
+  };
+  const fw=$('#f-wish',r);if(fw)fw.onclick=async()=>{const k=$('#cs-var',r).value,p=priceFor(c,k),v=vs.find(x=>x.key===k)||vs[0];
+    const w={id:uid(),cardId:c.id,name:c.name,setId:c.set?c.set.id:setIdOf(c.id),setName:c.set?c.set.name:'',localId:String(c.localId),image:c.image||'',variant:k,variantLabel:v.label,target:num($('#f-target',r).value),cm:p.cm,priceEur:p.eur,priceUsd:p.usd,addedAt:today()};
+    S.wish.push(w);await store.put('wishlist',w);closeModal();toast('Aggiunta alla wishlist');render()};
+  const fu=$('#f-unwish',r);if(fu)fu.onclick=async()=>{S.wish=S.wish.filter(w=>w.id!==inWish.id);await store.del('wishlist',inWish.id);closeModal();toast('Tolta dalla wishlist');render()};
+}
+function openItem(id){
+  const i=S.items.find(x=>x.id===id);if(!i)return;
+  const r=modal(`
+    <div class="sheet-hd"><div class="grow"><h2>${esc(i.name)}</h2><p>${esc(i.setName)} · ${esc(i.localId)} · ${esc(i.variantLabel||i.variant)} · Cardmarket ${fmtE(i.priceEur)}${i.priceUsd!=null?' · '+fmtU(i.priceUsd):''}</p></div>${X}</div>
+    <div class="row"><button class="btn ghost sm" data-card="${esc(i.cardId)}" data-variant="${esc(i.variant)}">Scheda e andamento</button></div>
+    <div class="form">
+      <div><label class="lbl" for="i-port">Dove</label><select id="i-port"><option value="personale"${i.portfolio==='personale'?' selected':''}>Collezione</option><option value="negozio"${i.portfolio==='negozio'?' selected':''}>Negozio</option></select></div>
+      <div><label class="lbl" for="i-lang">Lingua</label><select id="i-lang">${Object.entries(LANGS).map(([k,v])=>`<option value="${k}"${i.lang===k?' selected':''}>${v}</option>`).join('')}</select></div>
+      <div><label class="lbl" for="i-cond">Condizione</label><select id="i-cond">${COND.map(x=>`<option${i.cond===x?' selected':''}>${x}</option>`).join('')}</select></div>
+      <div><label class="lbl" for="i-qty">Quantità</label><input id="i-qty" inputmode="numeric" value="${i.qty||1}"></div>
+      <div><label class="lbl" for="i-buy">Prezzo acquisto €</label><input id="i-buy" inputmode="decimal" value="${i.buyPrice??''}"></div>
+      <div><label class="lbl" for="i-sell">Prezzo vendita €</label><input id="i-sell" inputmode="decimal" value="${i.sellPrice??''}"></div>
+      <div><label class="lbl" for="i-man">Prezzo manuale €</label><input id="i-man" inputmode="decimal" value="${i.manualPrice??''}" placeholder="vuoto = Cardmarket"></div>
+      <div><label class="lbl" for="i-added">Aggiunta il</label><input id="i-added" type="date" value="${esc(i.addedAt||today())}"></div>
+      <div class="full"><label class="lbl" for="i-note">Note</label><input id="i-note" value="${esc(i.notes||'')}"></div>
+    </div>
+    <div class="win"><div class="win-t"><span>Vendita</span></div><div class="win-b">
+      ${i.status==='venduto'?`<p>Venduta il ${esc((i.soldDate||'').split('-').reverse().join('/'))} a ${fmtE(i.soldPrice)}${i.buyPrice!=null?` · margine <b class="${(i.soldPrice-i.buyPrice)>=0?'up':'down'}">${fmtE((i.soldPrice-i.buyPrice)*(i.qty||1))}</b>`:''}</p><div class="row"><button class="btn ghost sm" id="i-unsell">Rimetti disponibile</button></div>`
+      :`<div class="row"><input id="i-soldp" inputmode="decimal" placeholder="incasso € cad." value="${i.sellPrice??''}" aria-label="Incasso" style="width:130px"><input id="i-soldd" type="date" value="${today()}" aria-label="Data vendita" style="width:160px"><button class="btn sm" id="i-sold">Segna venduta</button></div>`}
+    </div></div>
+    <div class="row"><button class="btn amber" id="i-save">Salva</button><button class="btn ghost" id="i-dup">Duplica</button><span class="grow"></span><button class="btn danger sm" id="i-del">Elimina</button></div>
+    <p class="msg bad" id="i-conf" hidden>Eliminare questa riga? <button class="btn danger sm" id="i-del2">Sì, elimina</button></p>`);
+  const read=()=>{i.portfolio=$('#i-port',r).value;i.lang=$('#i-lang',r).value;i.cond=$('#i-cond',r).value;i.qty=Math.max(1,parseInt($('#i-qty',r).value,10)||1);i.buyPrice=num($('#i-buy',r).value);i.sellPrice=num($('#i-sell',r).value);i.manualPrice=num($('#i-man',r).value);i.addedAt=$('#i-added',r).value||i.addedAt;i.notes=$('#i-note',r).value.trim()};
+  const done=async m=>{await store.put('items',i);closeModal();toast(m);render()};
+  $('#i-save',r).onclick=()=>{read();done('Salvato')};
+  $('#i-dup',r).onclick=async()=>{read();await store.put('items',i);const d=Object.assign({},i,{id:uid(),status:'disponibile',soldPrice:null,soldDate:null,addedAt:today()});S.items.push(d);await store.put('items',d);closeModal();toast('Duplicata');render()};
+  $('#i-del',r).onclick=()=>{$('#i-conf',r).hidden=false};
+  $('#i-del2',r).onclick=async()=>{S.items=S.items.filter(x=>x.id!==i.id);await store.del('items',i.id);closeModal();toast('Eliminata');render()};
+  const sb=$('#i-sold',r);if(sb)sb.onclick=()=>{read();i.status='venduto';i.soldPrice=num($('#i-soldp',r).value)??i.sellPrice??0;i.soldDate=$('#i-soldd',r).value||today();done('Segnata come venduta')};
+  const ub=$('#i-unsell',r);if(ub)ub.onclick=()=>{i.status='disponibile';i.soldPrice=null;i.soldDate=null;done('Di nuovo disponibile')};
+}
+
+/* ================= MERCATO ================= */
+$$('#mk-range button').forEach(b=>b.onclick=()=>{S.mkRange=b.dataset.r;$$('#mk-range button').forEach(x=>x.classList.toggle('on',x===b));drawValue()});
+$$('#mk-mdir button').forEach(b=>b.onclick=()=>{S.mkDir=b.dataset.d;$$('#mk-mdir button').forEach(x=>x.classList.toggle('on',x===b));drawMovers()});
+$$('#mk-dim button').forEach(b=>b.onclick=()=>{S.mkDim=b.dataset.k;$$('#mk-dim button').forEach(x=>x.classList.toggle('on',x===b));drawComp()});
+function renderMarket(){drawValue();drawTrend();drawMovers();drawComp();drawSales();fillMkSets();restoreMk()}
+function drawValue(){
+  const el=$('#mk-value');let days=Object.keys(S.hist).sort();
+  if(S.mkRange!=='all'){const lim=dayOf(new Date(Date.now()-(+S.mkRange)*864e5));days=days.filter(d=>d>=lim)}
+  if(days.length<2){el.innerHTML='<div class="empty"><b>Servono due rilevazioni</b>Il valore viene salvato una volta al giorno quando apri l\'app.</div>';$('#mk-value-sub').textContent='';return}
+  const lab=d=>d.slice(8)+'/'+d.slice(5,7);
+  el.innerHTML=lineSVG([{pts:days.map(d=>({x:lab(d),y:S.hist[d].total}))},{cls:'alt',pts:days.map(d=>({x:lab(d),y:S.hist[d].negozio}))}],{w:wOf(el),h:210,area:true,label:'Valore nel tempo'});
+  const a=S.hist[days[0]].total,b=S.hist[days[days.length-1]].total;$('#mk-value-sub').textContent=a?fmtP((b-a)/a):'';
+}
+function drawTrend(){
+  const el=$('#mk-trend'),ix=collIndex(avail());
+  if(!ix.n){el.innerHTML='<p class="note">Compare quando hai carte con prezzo Cardmarket. Somma le medie a 30 giorni, 7 giorni e dell\'ultimo giorno di tutte le tue carte disponibili.</p>';return}
+  el.innerHTML=`<div class="ro-grid">${ro('Media 30 gg',fmtE0(ix.a30))}${ro('Media 7 gg',fmtE0(ix.a7),fmtP(ix.p),ix.p>=0?'up':'down')}${ro('Ultimo giorno',fmtE0(ix.a1),ix.a30?fmtP((ix.a1-ix.a30)/ix.a30)+' sui 30 gg':'')}</div><div id="mk-trend-c"></div><p class="note">Calcolato su ${ix.n} righe: è come se rivendessi tutto alle medie Cardmarket di quel periodo.</p>`;
+  const c=$('#mk-trend-c');c.innerHTML=lineSVG([{pts:[{x:'media 30 gg',y:ix.a30},{x:'7 gg',y:ix.a7},{x:'1 g',y:ix.a1}]}],{w:wOf(c),h:150,area:true,label:'Tendenza collezione'});
+}
+function drawMovers(){
+  const el=$('#mk-movers'),seen=new Set(),rows=[];
+  avail().concat(S.wish).forEach(x=>{const k=x.cardId+'|'+x.variant;if(seen.has(k))return;seen.add(k);const t=trendOf(x.cm);if(!t||!ok(t.p))return;rows.push({id:x.cardId,name:x.name,setName:x.setName,localId:x.localId,image:x.image,cm:x.cm,eur:x.priceEur,label:x.variantLabel,p:t.p,variant:x.variant})});
+  const up=S.mkDir==='up',l=rows.filter(x=>up?x.p>0:x.p<0).sort((a,b)=>up?b.p-a.p:a.p-b.p).slice(0,10);
+  el.innerHTML=l.length?l.map(mrow).join(''):`<p class="note">${rows.length?'Nessuna carta in '+(up?'rialzo':'ribasso')+'.':'Compare quando collezione o wishlist hanno carte con prezzi Cardmarket.'}</p>`;
+}
+function drawComp(){
+  const el=$('#mk-comp'),av=avail(),g={};
+  const keyOf={set:i=>i.setName||i.setId,rarity:i=>i.rarity||'Senza rarità',lang:i=>LANGS[i.lang]||i.lang,cond:i=>i.cond}[S.mkDim];
+  av.forEach(i=>{const k=keyOf(i)||'—';g[k]=(g[k]||0)+valueOf(i)});
+  let rows=Object.entries(g).map(([label,v])=>({label,v})).filter(r=>r.v>0).sort((a,b)=>b.v-a.v);
+  if(rows.length>8){const rest=rows.slice(7);rows=rows.slice(0,7).concat([{label:'Altri ('+rest.length+')',v:sum(rest,r=>r.v)}])}
+  el.innerHTML=rows.length?barsHTML(rows):'<p class="note">Compare quando hai carte con un valore.</p>';
+}
+function drawSales(){
+  const el=$('#mk-sales'),sold=S.items.filter(i=>i.status==='venduto'&&i.soldDate);
+  if(!sold.length){el.innerHTML='<p class="note">Compare quando segni le prime carte del negozio come vendute.</p>';return}
+  const now=new Date(),months=[];for(let k=11;k>=0;k--){const d=new Date(now.getFullYear(),now.getMonth()-k,1);months.push({key:d.getFullYear()+'-'+pad(d.getMonth()+1),label:MESI[d.getMonth()],a:0,b:0})}
+  let days=0,dn=0,pcs=0,noBuy=0;
+  sold.forEach(i=>{const m=months.find(x=>x.key===i.soldDate.slice(0,7)),q=+i.qty||1;if(m){m.a+=(+i.soldPrice||0)*q;m.b+=((+i.soldPrice||0)-(+i.buyPrice||0))*q;pcs+=q;if(i.buyPrice==null)noBuy++}
+    if(i.addedAt){const dd=(new Date(i.soldDate)-new Date(i.addedAt))/864e5;if(dd>=0){days+=dd;dn++}}});
+  const inc=sum(months,m=>m.a),mar=sum(months,m=>m.b);
+  el.innerHTML=`<div class="ro-grid">${ro('Incasso 12 mesi',fmtE0(inc),pcs+' pezzi')}${ro('Margine',fmtE0(mar),inc?Math.round(mar/inc*100)+'% dell\'incasso':'',mar>=0?'up':'down')}${ro('Giacenza media',dn?Math.round(days/dn)+' gg':'—','da aggiunta a vendita')}</div><div id="mk-sales-c"></div><div class="legend"><span><i class="la"></i>Incasso</span><span><i class="lb"></i>Margine</span></div>${noBuy?`<p class="note">${noBuy} vendite senza prezzo d'acquisto: il loro margine è contato come l'intero incasso.</p>`:''}`;
+  const c=$('#mk-sales-c');c.innerHTML=columnsSVG(months,wOf(c));
+}
+function fillMkSets(){
+  const sel=$('#mk-set');if(sel.options.length>1)return;
+  catalog().then(cat=>{if(sel.options.length>1)return;sel.innerHTML=cat.sets.slice().reverse().map(s=>`<option value="${esc(s.id)}">${esc(s.name)} (${esc(s.id)})</option>`).join('')}).catch(()=>{sel.innerHTML='<option value="">Catalogo non disponibile</option>'});
+}
+function mkFrom(c){const vs=variantsOf(c);let best=null;vs.forEach(v=>{const p=priceFor(c,v.key);if(p.eur!=null&&(!best||p.eur>best.eur))best=p});best=best||priceFor(c,vs[0].key);
+  return {id:c.id,name:c.name,setName:c.set?c.set.name:'',localId:c.localId,image:c.image||'',cm:best.cm,eur:best.eur,label:best.label}}
+function mkLists(rows,box,topN){
+  const tr=rows.filter(x=>trendOf(x.cm)&&ok(trendOf(x.cm).p));
+  const up=tr.slice().sort((a,b)=>trendOf(b.cm).p-trendOf(a.cm).p).filter(x=>trendOf(x.cm).p>0).slice(0,5);
+  const dn=tr.slice().sort((a,b)=>trendOf(a.cm).p-trendOf(b.cm).p).filter(x=>trendOf(x.cm).p<0).slice(0,5);
+  box.innerHTML=`<h3 class="serie-h">Le più care</h3><div class="list">${rows.slice(0,topN).map(mrow).join('')}</div>`+(up.length?`<h3 class="serie-h">In rialzo</h3><div class="list">${up.map(mrow).join('')}</div>`:'')+(dn.length?`<h3 class="serie-h">In ribasso</h3><div class="list">${dn.map(mrow).join('')}</div>`:'');
+}
+async function restoreMk(){
+  const t=await store.get('mkt-top');if(t&&!$('#mk-top').innerHTML){mkLists(t.rows,$('#mk-top'),20);$('#mk-top-sub').textContent='oltre '+t.th+' €';$('#btn-mk-top').textContent='Ricarica'}
+}
+$('#btn-mk-top').onclick=async()=>{
+  const b=$('#btn-mk-top'),box=$('#mk-top');b.disabled=true;led(true);
+  try{let c=await store.get('mkt-top');
+    if(!c||c.t<Date.now()-12*36e5){
+      let briefs=[],th=0;
+      for(const t of [1000,500,250]){box.innerHTML=`<p class="note"><span class="spin"></span>Cerco carte oltre ${t} €…</p>`;briefs=await j('/en/cards?pricing.cardmarket.trend=gte:'+t)||[];th=t;if(briefs.length>=12)break}
+      if(!briefs.length||briefs.length>1500)throw new Error('TCGdex non ha restituito un elenco utilizzabile');
+      const sel=briefs.slice(0,70);let done=0;
+      const cards=await pool(sel,6,async x=>{const c2=await getCard(x.id,{lang:'en'});done++;if(done%5===0)box.innerHTML=`<p class="note"><span class="spin"></span>Leggo i prezzi: ${done}/${sel.length}</p>`;return c2});
+      const rows=cards.filter(Boolean).map(mkFrom).filter(x=>x.eur!=null).sort((a,b)=>b.eur-a.eur);
+      c={t:Date.now(),th,count:briefs.length,rows};await store.set('mkt-top',c);
+    }
+    mkLists(c.rows,box,20);$('#mk-top-sub').textContent='oltre '+c.th+' €';b.textContent='Ricarica';
+    box.insertAdjacentHTML('beforeend',`<p class="note">${c.count} carte oltre ${c.th} € di tendenza, analizzate ${c.rows.length}. Aggiornato ${new Date(c.t).toLocaleString('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}.</p>`);
+  }catch(e){box.innerHTML=`<p class="msg bad">${e.net?'Serve la connessione.':'Mercato non caricato: '+esc(e.message)}</p>`}
+  b.disabled=false;led(false);
+};
+$('#btn-mk-set').onclick=async()=>{
+  const id=$('#mk-set').value,b=$('#btn-mk-set'),box=$('#mk-setres');if(!id)return;b.disabled=true;led(true);
+  try{const key='mkt-set-'+id;let c=await store.get(key);
+    if(!c||c.t<Date.now()-12*36e5){
+      box.innerHTML='<p class="note"><span class="spin"></span>Cerco le carte di valore del set…</p>';
+      let briefs=await j('/en/cards?set=eq:'+encodeURIComponent(id)+'&pricing.cardmarket.trend=gte:2')||[],mode='filtro';
+      const d=await getSet(id);if(!briefs.length||briefs.length>(d.cards||[]).length){briefs=(d.cards||[]).slice(0,120);mode='tutte'}
+      let done=0;const sel=briefs.slice(0,120);
+      const cards=await pool(sel,6,async x=>{const c2=await getCard(x.id,{lang:'en'});done++;if(done%5===0)box.innerHTML=`<p class="note"><span class="spin"></span>Leggo i prezzi: ${done}/${sel.length}</p>`;return c2});
+      const rows=cards.filter(Boolean).map(mkFrom).filter(x=>x.eur!=null).sort((a,b)=>b.eur-a.eur);
+      c={t:Date.now(),rows,mode,setTotal:(d.cards||[]).length,name:d.name};await store.set(key,c);
+    }
+    const own=ownedIds(),ownedVal=sum(c.rows.filter(x=>own.has(x.id)),x=>x.eur);
+    mkLists(c.rows,box,12);
+    box.insertAdjacentHTML('afterbegin',`<div class="ro-grid">${ro('Carte analizzate',String(c.rows.length),c.mode==='filtro'?'quelle oltre 2 € su '+c.setTotal:'su '+c.setTotal)}${ro('Somma di una copia',fmtE0(sum(c.rows,x=>x.eur)),'carte analizzate')}${ro('Di cui possiedi',fmtE0(ownedVal),c.rows.filter(x=>own.has(x.id)).length+' carte')}</div>`);
+  }catch(e){box.innerHTML=`<p class="msg bad">${e.net?'Serve la connessione.':'Analisi non riuscita: '+esc(e.message)}</p>`}
+  b.disabled=false;led(false);
+};
+
+/* ================= ALTRO: backup, preferenze ================= */
+const isTouch=()=>matchMedia('(pointer:coarse)').matches;
+async function deliver(name,text,mime){
+  const blob=new Blob([text],{type:mime});
+  if(isTouch()&&navigator.canShare){try{const f=new File([blob],name,{type:mime});if(navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});return}}catch(e){if(e&&e.name==='AbortError')return}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);
+}
+function backupJSON(){return JSON.stringify({app:'omicron-pokedeck',version:2,exported:new Date().toISOString(),items:S.items,wishlist:S.wish,history:S.hist},null,1)}
+function csv(){
+  const head=['id','nome','set','codice_set','numero','variante','lingua','condizione','quantita','dove','stato','prezzo_acquisto','prezzo_vendita','prezzo_manuale','cardmarket_eur','cardmarket_media7','cardmarket_media30','tcgplayer_usd','incasso','data_vendita','aggiunta','note'];
+  const rows=S.items.map(i=>[i.id,i.name,i.setName,i.setId,i.localId,i.variantLabel||i.variant,i.lang,i.cond,i.qty,i.portfolio,i.status,i.buyPrice,i.sellPrice,i.manualPrice,i.priceEur,i.cm&&i.cm.avg7,i.cm&&i.cm.avg30,i.priceUsd,i.soldPrice,i.soldDate,i.addedAt,i.notes]);
+  const cell=v=>{if(v==null)return '';if(typeof v==='number')return String(v).replace('.',',');v=String(v);return /[";\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  return '﻿'+[head,...rows].map(r=>r.map(cell).join(';')).join('\r\n');
+}
+$('#btn-json').onclick=()=>deliver('pokedeck-backup-'+today()+'.json',backupJSON(),'application/json');
+$('#btn-csv').onclick=()=>deliver('inventario-negozio-'+today()+'.csv',csv(),'text/csv');
+$('#in-import').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{const d=JSON.parse(await f.text());let n=0,w=0,h=0;
+    for(const it of d.items||[]){if(!it||!it.id||!it.cardId)continue;const k=S.items.findIndex(x=>x.id===it.id);if(k>=0)S.items[k]=it;else S.items.push(it);await store.put('items',it);n++}
+    for(const x of d.wishlist||[]){if(!x||!x.id||!x.cardId)continue;if(x.target!=null)x.target=num(x.target);const k=S.wish.findIndex(y=>y.id===x.id);if(k>=0)S.wish[k]=x;else S.wish.push(x);await store.put('wishlist',x);w++}
+    for(const [day,doc] of Object.entries(d.history||{})){if(!/^\d{4}-\d{2}-\d{2}$/.test(day)||S.hist[day])continue;const v=Object.assign({},doc,{id:day});S.hist[day]=v;await store.put('history',v);h++}
+    $('#backup-note').textContent=`Importate ${n} carte, ${w} desideri, ${h} giorni di storico.`;toast('Importazione completata');
+  }catch(err){$('#backup-note').textContent='File non valido: '+err.message}
+};
+$('#pref-price').onchange=async e=>{S.prefs.price=e.target.value;await store.set('prefs',S.prefs);
+  for(const i of S.items)if(i.cm){i.priceEur=pickEur(i.cm);await store.put('items',i)}for(const w of S.wish)if(w.cm){w.priceEur=pickEur(w.cm);await store.put('wishlist',w)}toast('Prezzo di riferimento cambiato')};
+$('#pref-lang').onchange=async e=>{S.prefs.lang=e.target.value;S.cat=null;S.setCache={};S.cardCache={};$('#serie-filter').innerHTML='<option value="">Tutte le serie</option>';$('#mk-set').innerHTML='';await store.set('prefs',S.prefs);toast('Catalogo in '+e.target.selectedOptions[0].text)};
+async function renderMore(){
+  $('#pref-price').value=S.prefs.price;$('#pref-lang').value=S.prefs.lang;
+  let t=store.idb?'Archivio: database del browser.':'Archivio: memoria semplice del browser.';
+  try{if(navigator.storage&&navigator.storage.persisted){const p=await navigator.storage.persisted();t+=p?' Protetto dalla pulizia automatica.':' Non ancora protetto dalla pulizia automatica: installa l\'app sulla schermata Home.'}}catch(e){}
+  $('#storage-note').textContent=t;
+}
+
+/* ================= avvio ================= */
+async function boot(){
+  tickClock();setInterval(tickClock,30000);
+  await store.init();
+  const p=await store.get('prefs');if(p)Object.assign(S.prefs,p);
+  [S.items,S.wish]=await Promise.all([store.all('items'),store.all('wishlist')]);
+  (await store.all('history')).forEach(h=>S.hist[h.id]=h);
+  const ios=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  const standalone=navigator.standalone||matchMedia('(display-mode: standalone)').matches;
+  if(ios&&!standalone&&!(await store.get('installHintClosed')))$('#home-install').hidden=false;
+  $('#install-x').onclick=async()=>{$('#home-install').hidden=true;await store.set('installHintClosed',true)};
+  const tab=location.hash.slice(1);show(TABNAME[tab]&&tab!=='set'?tab:'home');
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+  if('serviceWorker' in navigator&&/github\.io$|localhost|127\.0\.0\.1/.test(location.hostname)){try{navigator.serviceWorker.register('sw.js')}catch(e){}}
+  const last=await store.get('lastRefresh');
+  if(last!==today())refreshPrices(false);else $('#refresh-note').textContent='Prezzi aggiornati oggi';
+  catalog().catch(()=>{});
+}
+boot();
+})();
+</script>
+</body>
+</html>

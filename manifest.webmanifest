@@ -1,0 +1,17 @@
+{
+  "name": "Omicron Pokédeck",
+  "short_name": "Pokédeck",
+  "description": "Collezione e inventario di carte Pokémon con prezzi Cardmarket, scanner da foto, wishlist e andamento di mercato.",
+  "lang": "it",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#b3162c",
+  "theme_color": "#b3162c",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
